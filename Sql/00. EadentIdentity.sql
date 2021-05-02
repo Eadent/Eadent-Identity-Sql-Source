@@ -21,7 +21,7 @@
 -- Some Variables.
 --------------------------------------------------------------------------------
 
-:SETVAR Schema                          "Dad"
+:SETVAR Schema                          "Dad_Identity"
 
 --------------------------------------------------------------------------------
 -- Create Tables if/as appropriate.
@@ -225,9 +225,9 @@ BEGIN
     (
         UserAuditId                 BigInt NOT NULL CONSTRAINT PK_$(Schema)_UserAudits PRIMARY KEY IDENTITY(0, 1),
         UserId                      BigInt NOT NULL CONSTRAINT FK_$(Schema)_UserAudits_Users FOREIGN KEY (UserId) REFERENCES $(Schema).Users(UserId),
-		Description                 NVarChar(256) NOT NULL,
-		OldValue                    NVarChar(256) NULL,
-		NewValue                    NVarChar(256) NULL,
+        Description                 NVarChar(256) NOT NULL,
+        OldValue                    NVarChar(256) NULL,
+        NewValue                    NVarChar(256) NULL,
         IpAddress                   NVarChar(128) NOT NULL,
         CreatedDateTimeUtc          DateTime2(7) NOT NULL
     );
