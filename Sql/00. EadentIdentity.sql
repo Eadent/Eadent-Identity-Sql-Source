@@ -11,7 +11,7 @@
 --  0.  The Sql Server Database has already been Created by some other means,
 --      and has been selected for Use.
 --
---  1.  This Sql file will be included in another Sql Project along the lines of:
+--  1.  This Sql file will be included via another Sql Project along the lines of:
 --
 --          :R "\Projects\Eadent\Eadent-Identity-Sql-Source\Sql\00. EadentIdentity.sql"
 --
