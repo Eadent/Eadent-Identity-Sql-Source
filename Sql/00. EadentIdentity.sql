@@ -159,6 +159,21 @@ BEGIN
 END
 GO
 
+IF INDEXPROPERTY(OBJECT_ID(N'$(Schema).UserSignIns'), 'IX_$(Schema)_UserSignIns_UserId', 'IndexID') IS NULL
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_$(Schema)_UserSignIns_UserId ON $(Schema).UserSignIns(UserId) INCLUDE (SignInStatusId, CreatedDateTimeUtc);
+END
+
+DECLARE @Error AS Int = @@ERROR;
+IF (@Error != 0)
+BEGIN
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+    BEGIN TRANSACTION;
+    SET CONTEXT_INFO 0x01;
+END
+GO
+
 --------------------------------------------------------------------------------
 
 IF OBJECT_ID(N'$(Schema).UserEMails', N'U') IS NULL
