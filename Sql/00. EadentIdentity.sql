@@ -63,9 +63,10 @@ BEGIN
     CREATE TABLE $(Schema).Users
     (
         UserId                          BigInt NOT NULL CONSTRAINT PK_$(Schema)_Users PRIMARY KEY IDENTITY(0, 1),
+        UserGuid                        UniqueIdentifier NOT NULL,
         UserStatusId                    SmallInt NOT NULL CONSTRAINT FK_$(Schema)_Users_UserStatuses FOREIGN KEY (UserStatusId) REFERENCES $(Schema).UserStatuses(UserStatusId),
         DisplayName                     NVarChar(256) NOT NULL,
-        Salt                            UniqueIdentifier NOT NULL,
+        SaltGuid                        UniqueIdentifier NOT NULL,
         Password                        NVarChar(256) NOT NULL,
         SignInErrorCount                Int NOT NULL,
         SignInErrorLimit                Int NOT NULL,
@@ -232,7 +233,7 @@ BEGIN
         (RoleId, RoleLevel, Description)
     VALUES
         (0,  1000, N'Global Administrator'),
-        (1, 30000, N'Member');
+        (1, 30000, N'User');
 END
 GO
 
