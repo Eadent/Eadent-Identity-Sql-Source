@@ -88,81 +88,9 @@ BEGIN
 END
 GO
 
---------------------------------------------------------------------------------
-
-IF OBJECT_ID(N'$(Schema).SignInStatuses', N'U') IS NULL
+IF INDEXPROPERTY(OBJECT_ID(N'$(Schema).Users'), 'IX_$(Schema)_Users_UserGuid', 'IndexID') IS NULL
 BEGIN
-    CREATE TABLE $(Schema).SignInStatuses
-    (
-        SignInStatusId              SmallInt NOT NULL CONSTRAINT PK_$(Schema)_SignInStatuses PRIMARY KEY,
-        Description                 NVarChar(128) NOT NULL,
-        CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(Schema)_SignInStatuses_CreatedDateTimeUtc DEFAULT GetUtcDate()
-    );
-
-    INSERT INTO $(Schema).SignInStatuses
-        (SignInStatusId, Description)
-    VALUES
-        (  0, N'Success'),
-        (  1, N'Disabled'),
-        (  2, N'Locked Out'),
-        (  3, N'Invalid Password'),
-        (100, N'Soft Deleted');
-END
-GO
-
-DECLARE @Error AS Int = @@ERROR;
-IF (@Error != 0)
-BEGIN
-    IF @@TRANCOUNT > 0
-        ROLLBACK TRANSACTION;
-    BEGIN TRANSACTION;
-    SET CONTEXT_INFO 0x01;
-END
-GO
-
---------------------------------------------------------------------------------
-
-IF OBJECT_ID(N'$(Schema).UserSignIns', N'U') IS NULL
-BEGIN
-    CREATE TABLE $(Schema).UserSignIns
-    (
-        UserSignInId                BigInt NOT NULL CONSTRAINT PK_$(Schema)_UserSignIns PRIMARY KEY IDENTITY(0, 1),
-        UserId                      BigInt NOT NULL CONSTRAINT FK_$(Schema)_UserSignIns_Users FOREIGN KEY (UserId) REFERENCES $(Schema).Users(UserId),
-        SignInStatusId              SmallInt NOT NULL CONSTRAINT FK_$(Schema)_UserSignIns_SignInStatuses FOREIGN KEY (SignInStatusId) REFERENCES $(Schema).SignInStatuses(SignInStatusId),
-        RemoteIpAddress             NVarChar(128) NOT NULL,
-        CreatedDateTimeUtc          DateTime2(7) NOT NULL
-    );
-END
-GO
-
-DECLARE @Error AS Int = @@ERROR;
-IF (@Error != 0)
-BEGIN
-    IF @@TRANCOUNT > 0
-        ROLLBACK TRANSACTION;
-    BEGIN TRANSACTION;
-    SET CONTEXT_INFO 0x01;
-END
-GO
-
-IF INDEXPROPERTY(OBJECT_ID(N'$(Schema).UserSignIns'), 'IX_$(Schema)_UserSignIns_UserId', 'IndexID') IS NULL
-BEGIN
-    CREATE NONCLUSTERED INDEX IX_$(Schema)_UserSignIns_UserId ON $(Schema).UserSignIns(UserId) INCLUDE (SignInStatusId, RemoteIpAddress);
-END
-
-DECLARE @Error AS Int = @@ERROR;
-IF (@Error != 0)
-BEGIN
-    IF @@TRANCOUNT > 0
-        ROLLBACK TRANSACTION;
-    BEGIN TRANSACTION;
-    SET CONTEXT_INFO 0x01;
-END
-GO
-
-IF INDEXPROPERTY(OBJECT_ID(N'$(Schema).UserSignIns'), 'IX_$(Schema)_UserSignIns_UserId', 'IndexID') IS NULL
-BEGIN
-    CREATE NONCLUSTERED INDEX IX_$(Schema)_UserSignIns_UserId ON $(Schema).UserSignIns(UserId) INCLUDE (SignInStatusId, CreatedDateTimeUtc);
+    CREATE NONCLUSTERED INDEX IX_$(Schema)_User_UserGuid ON $(Schema).Users(UserGuid) INCLUDE (UserId);
 END
 
 DECLARE @Error AS Int = @@ERROR;
@@ -205,6 +133,120 @@ GO
 IF INDEXPROPERTY(OBJECT_ID(N'$(Schema).UserEMails'), 'IX_$(Schema)_UserEMails_EMailAddress', 'IndexID') IS NULL
 BEGIN
     CREATE NONCLUSTERED INDEX IX_$(Schema)_UserEMails_EMailAddress ON $(Schema).UserEMails(EMailAddress) INCLUDE (UserId, UserEMailId);
+END
+
+DECLARE @Error AS Int = @@ERROR;
+IF (@Error != 0)
+BEGIN
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+    BEGIN TRANSACTION;
+    SET CONTEXT_INFO 0x01;
+END
+GO
+
+--------------------------------------------------------------------------------
+
+IF OBJECT_ID(N'$(Schema).SignInStatuses', N'U') IS NULL
+BEGIN
+    CREATE TABLE $(Schema).SignInStatuses
+    (
+        SignInStatusId              SmallInt NOT NULL CONSTRAINT PK_$(Schema)_SignInStatuses PRIMARY KEY,
+        Description                 NVarChar(128) NOT NULL,
+        CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(Schema)_SignInStatuses_CreatedDateTimeUtc DEFAULT GetUtcDate()
+    );
+
+    INSERT INTO $(Schema).SignInStatuses
+        (SignInStatusId, Description)
+    VALUES
+        (  0, N'Success'),
+        (  1, N'Disabled'),
+        (  2, N'Locked Out'),
+        (  3, N'Invalid Password'),
+        (100, N'Soft Deleted');
+END
+GO
+
+DECLARE @Error AS Int = @@ERROR;
+IF (@Error != 0)
+BEGIN
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+    BEGIN TRANSACTION;
+    SET CONTEXT_INFO 0x01;
+END
+GO
+
+--------------------------------------------------------------------------------
+
+IF OBJECT_ID(N'$(Schema).UserSignIns', N'U') IS NULL
+BEGIN
+    CREATE TABLE $(Schema).UserSignIns
+    (
+        UserSignInId                BigInt NOT NULL CONSTRAINT PK_$(Schema)_UserSignIns PRIMARY KEY IDENTITY(0, 1),
+        UserId                      BigInt NOT NULL CONSTRAINT FK_$(Schema)_UserSignIns_Users FOREIGN KEY (UserId) REFERENCES $(Schema).Users(UserId),
+        SignInStatusId              SmallInt NOT NULL CONSTRAINT FK_$(Schema)_UserSignIns_SignInStatuses FOREIGN KEY (SignInStatusId) REFERENCES $(Schema).SignInStatuses(SignInStatusId),
+        IpAddress                   NVarChar(128) NOT NULL,
+        CreatedDateTimeUtc          DateTime2(7) NOT NULL
+    );
+END
+GO
+
+DECLARE @Error AS Int = @@ERROR;
+IF (@Error != 0)
+BEGIN
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+    BEGIN TRANSACTION;
+    SET CONTEXT_INFO 0x01;
+END
+GO
+
+IF INDEXPROPERTY(OBJECT_ID(N'$(Schema).UserSignIns'), 'IX_$(Schema)_UserSignIns_UserId', 'IndexID') IS NULL
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_$(Schema)_UserSignIns_UserId ON $(Schema).UserSignIns(UserId) INCLUDE (SignInStatusId, IpAddress);
+END
+
+DECLARE @Error AS Int = @@ERROR;
+IF (@Error != 0)
+BEGIN
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+    BEGIN TRANSACTION;
+    SET CONTEXT_INFO 0x01;
+END
+GO
+
+--------------------------------------------------------------------------------
+
+IF OBJECT_ID(N'$(Schema).UserAudits', N'U') IS NULL
+BEGIN
+    CREATE TABLE $(Schema).UserAudits
+    (
+        UserAuditId                 BigInt NOT NULL CONSTRAINT PK_$(Schema)_UserAudits PRIMARY KEY IDENTITY(0, 1),
+        UserId                      BigInt NOT NULL CONSTRAINT FK_$(Schema)_UserAudits_Users FOREIGN KEY (UserId) REFERENCES $(Schema).Users(UserId),
+		Description                 NVarChar(256) NOT NULL,
+		OldValue                    NVarChar(256) NULL,
+		NewValue                    NVarChar(256) NULL,
+        IpAddress                   NVarChar(128) NOT NULL,
+        CreatedDateTimeUtc          DateTime2(7) NOT NULL
+    );
+END
+GO
+
+DECLARE @Error AS Int = @@ERROR;
+IF (@Error != 0)
+BEGIN
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+    BEGIN TRANSACTION;
+    SET CONTEXT_INFO 0x01;
+END
+GO
+
+IF INDEXPROPERTY(OBJECT_ID(N'$(Schema).UserAudits'), 'IX_$(Schema)_UserAudits_UserId', 'IndexID') IS NULL
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_$(Schema)_UserAudits_UserId ON $(Schema).UserAudits(UserId) INCLUDE (UserAuditId);
 END
 
 DECLARE @Error AS Int = @@ERROR;
