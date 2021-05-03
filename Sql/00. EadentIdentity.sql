@@ -97,10 +97,12 @@ BEGIN
         PasswordVersionId               SmallInt NOT NULL CONSTRAINT FK_$(Schema)_Users_PasswordVersions FOREIGN KEY (PasswordVersionId) REFERENCES $(Schema).PasswordVersions(PasswordVersionId),
         SaltGuid                        UniqueIdentifier NOT NULL,
         Password                        NVarChar(256) COLLATE SQL_Latin1_General_CP1_CS_AS NOT NULL,
+        PasswordDateTimeUtc             DateTime2(7) NOT NULL,
+        ChangePasswordNextSignIn        Bit NOT NULL,
         SignInErrorCount                Int NOT NULL,
         SignInErrorLimit                Int NOT NULL,
+        SignInLockOutDurationMinutes    Int NOT NULL,
         SignInLockOutDateTimeUtc        DateTime2(7) NULL,
-        SignInLockOutDurationMinutes    SmallInt NOT NULL,
         CreatedDateTimeUtc              DateTime2(7) NOT NULL
     );
 END
@@ -139,11 +141,9 @@ BEGIN
     (
         UserEMailId                 BigInt NOT NULL CONSTRAINT PK_$(Schema)_UserEMails PRIMARY KEY IDENTITY(0, 1),
         UserId                      BigInt NOT NULL CONSTRAINT FK_$(Schema)_UserEMails_Users FOREIGN KEY (UserId) REFERENCES $(Schema).Users(UserId),
-        EMailAddress                NVarChar(256) NOT NULL,
+        EMailAddress                NVarChar(256) NOT NULL CONSTRAINT UQ_$(Schema)_UserEMails_EMailAddress UNIQUE,
         CreatedDateTimeUtc          DateTime2(7) NOT NULL,
         VerifiedDateTimeUtc         DateTime2(7) NULL,
-
-        CONSTRAINT UQ_$(Schema)_UserEMails_UserId_EMailAddress UNIQUE (UserId, EMailAddress) 
     );
 END
 GO
@@ -207,15 +207,19 @@ GO
 
 --------------------------------------------------------------------------------
 
-IF OBJECT_ID(N'$(Schema).UserSignIns', N'U') IS NULL
+IF OBJECT_ID(N'$(Schema).UserSessions', N'U') IS NULL
 BEGIN
-    CREATE TABLE $(Schema).UserSignIns
+    CREATE TABLE $(Schema).UserSessions
     (
-        UserSignInId                BigInt NOT NULL CONSTRAINT PK_$(Schema)_UserSignIns PRIMARY KEY IDENTITY(0, 1),
-        UserId                      BigInt NOT NULL CONSTRAINT FK_$(Schema)_UserSignIns_Users FOREIGN KEY (UserId) REFERENCES $(Schema).Users(UserId),
-        SignInStatusId              SmallInt NOT NULL CONSTRAINT FK_$(Schema)_UserSignIns_SignInStatuses FOREIGN KEY (SignInStatusId) REFERENCES $(Schema).SignInStatuses(SignInStatusId),
-        IpAddress                   NVarChar(128) NOT NULL,
-        CreatedDateTimeUtc          DateTime2(7) NOT NULL
+        UserSessionId                   BigInt NOT NULL CONSTRAINT PK_$(Schema)_UserSessions PRIMARY KEY IDENTITY(0, 1),
+        UserSessionToken                NVarChar(256) NOT NULL,
+        UserSessionExpirationMinutes    SmallInt NOT NULL,
+        EMailAddress                    NVarChar(256) NOT NULL,
+        IpAddress                       NVarChar(128) NOT NULL,
+        SignInStatusId                  SmallInt NOT NULL CONSTRAINT FK_$(Schema)_UserSessions_SignInStatuses FOREIGN KEY (SignInStatusId) REFERENCES $(Schema).SignInStatuses(SignInStatusId),
+        UserId                          BigInt NULL CONSTRAINT FK_$(Schema)_UserSessions_Users FOREIGN KEY (UserId) REFERENCES $(Schema).Users(UserId),
+        CreatedDateTimeUtc              DateTime2(7) NOT NULL,
+        LastAccessedDateTimeUtc         DateTime2(7) NOT NULL
     );
 END
 GO
@@ -230,9 +234,9 @@ BEGIN
 END
 GO
 
-IF INDEXPROPERTY(OBJECT_ID(N'$(Schema).UserSignIns'), 'IX_$(Schema)_UserSignIns_UserId', 'IndexID') IS NULL
+IF INDEXPROPERTY(OBJECT_ID(N'$(Schema).UserSessions'), 'IX_$(Schema)_UserSessions_UserSessionToken', 'IndexID') IS NULL
 BEGIN
-    CREATE NONCLUSTERED INDEX IX_$(Schema)_UserSignIns_UserId ON $(Schema).UserSignIns(UserId) INCLUDE (SignInStatusId, IpAddress);
+    CREATE NONCLUSTERED INDEX IX_$(Schema)_UserSessions_UserSessionToken ON $(Schema).UserSessions(UserSessionToken) INCLUDE (UserSessionId, IpAddress, SignInStatusId, UserId);
 END
 
 DECLARE @Error AS Int = @@ERROR;
@@ -302,8 +306,8 @@ BEGIN
     INSERT INTO $(Schema).Roles
         (RoleId, RoleLevel, Description)
     VALUES
-        (0,  1000, N'Global Administrator'),
-        (1, 30000, N'User');
+        ( 100,  1000, N'Global Administrator'),
+        (1000, 30000, N'User');
 END
 GO
 
@@ -344,6 +348,48 @@ GO
 IF INDEXPROPERTY(OBJECT_ID(N'$(Schema).UserRoles'), 'IX_$(Schema)_UserRoles_UserId', 'IndexID') IS NULL
 BEGIN
     CREATE NONCLUSTERED INDEX IX_$(Schema)_UserRoles_UserId ON $(Schema).UserRoles(UserId) INCLUDE (RoleId);
+END
+
+DECLARE @Error AS Int = @@ERROR;
+IF (@Error != 0)
+BEGIN
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+    BEGIN TRANSACTION;
+    SET CONTEXT_INFO 0x01;
+END
+GO
+
+--------------------------------------------------------------------------------
+
+IF OBJECT_ID(N'$(Schema).PasswordResets', N'U') IS NULL
+BEGIN
+    CREATE TABLE $(Schema).PasswordResets
+    (
+        PasswordResetId             BigInt NOT NULL CONSTRAINT PK_$(Schema)_PasswordResets PRIMARY KEY IDENTITY(0, 1),
+        ResetToken                  NVarChar(256) NOT NULL,
+        RequestedDateTimeUtc        DateTime2(7) NOT NULL,
+        ExpirationDateTimeUtc       DateTime2(7) NOT NULL,
+        EMailAddress                NVarChar(256) NOT NULL,
+        IpAddress                   NVarChar(128) NOT NULL,
+        UserId                      BigInt NULL CONSTRAINT FK_$(Schema)_PasswordResets_Users FOREIGN KEY (UserId) REFERENCES $(Schema).Users(UserId)
+    );
+END
+GO
+
+DECLARE @Error AS Int = @@ERROR;
+IF (@Error != 0)
+BEGIN
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+    BEGIN TRANSACTION;
+    SET CONTEXT_INFO 0x01;
+END
+GO
+
+IF INDEXPROPERTY(OBJECT_ID(N'$(Schema).UserSessions'), 'IX_$(Schema)_UserSessions_UserSessionToken', 'IndexID') IS NULL
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_$(Schema)_PasswordResets_ResetToken ON $(Schema).PasswordResets(ResetToken) INCLUDE (PasswordResetId, ExpirationDa);
 END
 
 DECLARE @Error AS Int = @@ERROR;
