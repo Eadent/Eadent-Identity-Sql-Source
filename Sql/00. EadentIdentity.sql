@@ -188,9 +188,12 @@ BEGIN
         (SignInStatusId, Description)
     VALUES
         (  0, N'Success'),
-        (  1, N'Disabled'),
-        (  2, N'Locked Out'),
-        (  3, N'Invalid Password'),
+        (  1, N'Success - Must Change Password'),
+        (  2, N'Error'),
+        (  3, N'Disabled'),
+        (  4, N'Locked Out'),
+        (  5, N'Invalid E-Mail Address'),
+        (  6, N'Invalid Password'),
         (100, N'Soft Deleted');
 END
 GO
@@ -369,7 +372,7 @@ BEGIN
         PasswordResetId             BigInt NOT NULL CONSTRAINT PK_$(Schema)_PasswordResets PRIMARY KEY IDENTITY(0, 1),
         ResetToken                  NVarChar(256) NOT NULL,
         RequestedDateTimeUtc        DateTime2(7) NOT NULL,
-        ExpirationDateTimeUtc       DateTime2(7) NOT NULL,
+        ExpirationDurationMinutes   Int NOT NULL,
         EMailAddress                NVarChar(256) NOT NULL,
         IpAddress                   NVarChar(128) NOT NULL,
         UserId                      BigInt NULL CONSTRAINT FK_$(Schema)_PasswordResets_Users FOREIGN KEY (UserId) REFERENCES $(Schema).Users(UserId)
