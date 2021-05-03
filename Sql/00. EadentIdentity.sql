@@ -27,6 +27,34 @@
 -- Create Tables if/as appropriate.
 --------------------------------------------------------------------------------
 
+IF OBJECT_ID(N'$(Schema).PasswordVersions', N'U') IS NULL
+BEGIN
+    CREATE TABLE $(Schema).PasswordVersions
+    (
+        PasswordVersionId           SmallInt NOT NULL CONSTRAINT PK_$(Schema)_PasswordVersions PRIMARY KEY,
+        Description                 NVarChar(128) NOT NULL,
+        CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(Schema)_PasswordVersions_CreatedDateTimeUtc DEFAULT GetUtcDate()
+    );
+
+    INSERT INTO $(Schema).PasswordVersions
+        (PasswordVersionId, Description)
+    VALUES
+        (  0, N'Pbkdf2 HMACSHA512');
+END
+GO
+
+DECLARE @Error AS Int = @@ERROR;
+IF (@Error != 0)
+BEGIN
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+    BEGIN TRANSACTION;
+    SET CONTEXT_INFO 0x01;
+END
+GO
+
+--------------------------------------------------------------------------------
+
 IF OBJECT_ID(N'$(Schema).UserStatuses', N'U') IS NULL
 BEGIN
     CREATE TABLE $(Schema).UserStatuses
@@ -66,8 +94,9 @@ BEGIN
         UserGuid                        UniqueIdentifier NOT NULL,
         UserStatusId                    SmallInt NOT NULL CONSTRAINT FK_$(Schema)_Users_UserStatuses FOREIGN KEY (UserStatusId) REFERENCES $(Schema).UserStatuses(UserStatusId),
         DisplayName                     NVarChar(256) NOT NULL,
+        PasswordVersionId               SmallInt NOT NULL CONSTRAINT FK_$(Schema)_Users_PasswordVersions FOREIGN KEY (PasswordVersionId) REFERENCES $(Schema).PasswordVersions(PasswordVersionId),
         SaltGuid                        UniqueIdentifier NOT NULL,
-        Password                        NVarChar(256) NOT NULL,
+        Password                        NVarChar(256) COLLATE SQL_Latin1_General_CP1_CS_AS NOT NULL,
         SignInErrorCount                Int NOT NULL,
         SignInErrorLimit                Int NOT NULL,
         SignInLockOutDateTimeUtc        DateTime2(7) NULL,
@@ -114,6 +143,7 @@ BEGIN
         EMailAddress                NVarChar(256) NOT NULL,
         CreatedDateTimeUtc          DateTime2(7) NOT NULL,
         LastUpdatedDateTimeUtc      DateTime2(7) NULL,
+        VerifiedDateTimeUtc         DateTime2(7) NULL,
 
         CONSTRAINT UQ_$(Schema)_UserEMails_UserId_EMailAddress UNIQUE (UserId, EMailAddress) 
     );
