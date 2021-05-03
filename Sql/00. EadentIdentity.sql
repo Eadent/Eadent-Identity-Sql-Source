@@ -101,8 +101,7 @@ BEGIN
         SignInErrorLimit                Int NOT NULL,
         SignInLockOutDateTimeUtc        DateTime2(7) NULL,
         SignInLockOutDurationMinutes    SmallInt NOT NULL,
-        CreatedDateTimeUtc              DateTime2(7) NOT NULL,
-        LastUpdatedDateTimeUtc          DateTime2(7) NULL
+        CreatedDateTimeUtc              DateTime2(7) NOT NULL
     );
 END
 GO
@@ -142,7 +141,6 @@ BEGIN
         UserId                      BigInt NOT NULL CONSTRAINT FK_$(Schema)_UserEMails_Users FOREIGN KEY (UserId) REFERENCES $(Schema).Users(UserId),
         EMailAddress                NVarChar(256) NOT NULL,
         CreatedDateTimeUtc          DateTime2(7) NOT NULL,
-        LastUpdatedDateTimeUtc      DateTime2(7) NULL,
         VerifiedDateTimeUtc         DateTime2(7) NULL,
 
         CONSTRAINT UQ_$(Schema)_UserEMails_UserId_EMailAddress UNIQUE (UserId, EMailAddress) 
