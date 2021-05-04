@@ -230,12 +230,46 @@ GO
 
 --------------------------------------------------------------------------------
 
+IF OBJECT_ID(N'$(IdentitySchema).UserSessionStatuses', N'U') IS NULL
+BEGIN
+    CREATE TABLE $(IdentitySchema).UserSessionStatuses
+    (
+        UserSessionStatusId         SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserSessionStatuses PRIMARY KEY,
+        Description                 NVarChar(128) NOT NULL,
+        CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_UserSessionsStatuses_CreatedDateTimeUtc DEFAULT GetUtcDate()
+    );
+
+    INSERT INTO $(IdentitySchema).UserSessionStatuses
+        (UserSessionStatusId, Description)
+    VALUES
+        (  0, N'Inactive'),
+        (  1, N'Signed In'),
+        (  2, N'Signed Out'),
+        (  3, N'Timed Out / Expired'),
+        (  4, N'Disabled'),
+        (100, N'Soft Deleted');
+END
+GO
+
+DECLARE @Error AS Int = @@ERROR;
+IF (@Error != 0)
+BEGIN
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+    BEGIN TRANSACTION;
+    SET CONTEXT_INFO 0x01;
+END
+GO
+
+--------------------------------------------------------------------------------
+
 IF OBJECT_ID(N'$(IdentitySchema).UserSessions', N'U') IS NULL
 BEGIN
     CREATE TABLE $(IdentitySchema).UserSessions
     (
         UserSessionId                   BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserSessions PRIMARY KEY IDENTITY(0, 1),
         UserSessionToken                NVarChar(256) NOT NULL,
+        UserSessionStatusId             SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_UserSessions_UserSessionStatuses FOREIGN KEY (UserSessionStatusId) REFERENCES $(IdentitySchema).UserSessionStatuses(UserSessionStatusId),
         UserSessionExpirationMinutes    SmallInt NOT NULL,
         EMailAddress                    NVarChar(256) NOT NULL,
         IpAddress                       NVarChar(128) NOT NULL,
@@ -279,7 +313,7 @@ BEGIN
     CREATE TABLE $(IdentitySchema).UserAudits
     (
         UserAuditId                 BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserAudits PRIMARY KEY IDENTITY(0, 1),
-        UserId                      BigInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_UserAudits_Users FOREIGN KEY (UserId) REFERENCES $(IdentitySchema).Users(UserId),
+        UserId                      BigInt NULL CONSTRAINT FK_$(IdentitySchema)_UserAudits_Users FOREIGN KEY (UserId) REFERENCES $(IdentitySchema).Users(UserId),
         Description                 NVarChar(256) NOT NULL,
         OldValue                    NVarChar(256) NULL,
         NewValue                    NVarChar(256) NULL,
@@ -450,6 +484,8 @@ DROP TABLE $(IdentitySchema).Users;
 DROP TABLE $(IdentitySchema).UserStatuses;
 
 DROP TABLE $(IdentitySchema).SignInStatuses;
+
+DROP TABLE $(IdentitySchema).UserSessionStatuses;
 
 DROP TABLE $(IdentitySchema).PasswordVersions;
 
