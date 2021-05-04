@@ -11,9 +11,9 @@
 --  0.  The Sql Server Database has already been Created by some other means,
 --      and has been selected for Use.
 --
---  1.  This Sql file will be included via another Sql Project along the lines of:
+--  1.  This Sql file may be run as is or may be included via another Sql File along the lines of:
 --
---          :R "\Projects\Eadent\Eadent-Identity-Sql-Source\Sql\00. EadentIdentity.sql"
+--          :R "\Projects\Eadent\Eadent-Identity-Sql-Source\Sql\V00.00\00. EadentIdentity.sql"
 --
 --------------------------------------------------------------------------------
 
@@ -75,11 +75,42 @@ GO
 
 --------------------------------------------------------------------------------
 
+IF OBJECT_ID(N'$(IdentitySchema).PasswordResetStatuses', N'U') IS NULL
+BEGIN
+    CREATE TABLE $(IdentitySchema).PasswordResetStatuses
+    (
+        PasswordResetStatusId       SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_PasswordResetStatuses PRIMARY KEY,
+        Description                 NVarChar(128) NOT NULL,
+        CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_PasswordResetStatuses_CreatedDateTimeUtc DEFAULT GetUtcDate()
+    );
+
+    INSERT INTO $(IdentitySchema).PasswordResetStatuses
+        (PasswordResetStatusId, Description)
+    VALUES
+        (  0, N'Open'),
+        (  1, N'Aborted'),
+        (  2, N'TimedOutExpired'),
+        (  3, N'Closed');
+END
+GO
+
+DECLARE @Error AS Int = @@ERROR;
+IF (@Error != 0)
+BEGIN
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+    BEGIN TRANSACTION;
+    SET CONTEXT_INFO 0x01;
+END
+GO
+
+--------------------------------------------------------------------------------
+
 IF OBJECT_ID(N'$(IdentitySchema).UserStatuses', N'U') IS NULL
 BEGIN
     CREATE TABLE $(IdentitySchema).UserStatuses
     (
-        UserStatusId                SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserStatusess PRIMARY KEY,
+        UserStatusId                SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserStatuses PRIMARY KEY,
         Description                 NVarChar(128) NOT NULL,
         CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_UserStatuses_CreatedDateTimeUtc DEFAULT GetUtcDate()
     );
@@ -424,6 +455,7 @@ BEGIN
     CREATE TABLE $(IdentitySchema).PasswordResets
     (
         PasswordResetId             BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_PasswordResets PRIMARY KEY IDENTITY(0, 1),
+        PasswordResetStatusId       SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_PasswordResets_PasswordResetStatuses FOREIGN KEY (PasswordResetStatusId) REFERENCES $(IdentitySchema).PasswordResetStatuses(PasswordResetStatusId),
         ResetToken                  NVarChar(256) NOT NULL,
         RequestedDateTimeUtc        DateTime2(7) NOT NULL,
         ExpirationDurationMinutes   Int NOT NULL,
@@ -486,6 +518,8 @@ DROP TABLE $(IdentitySchema).UserStatuses;
 DROP TABLE $(IdentitySchema).SignInStatuses;
 
 DROP TABLE $(IdentitySchema).UserSessionStatuses;
+
+DROP TABLE $(IdentitySchema).PasswordResetStatuses;
 
 DROP TABLE $(IdentitySchema).PasswordVersions;
 
