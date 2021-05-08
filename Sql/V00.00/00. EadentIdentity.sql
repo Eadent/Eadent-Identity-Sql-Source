@@ -52,12 +52,12 @@ BEGIN
     CREATE TABLE $(IdentitySchema).PasswordVersions
     (
         PasswordVersionId           SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_PasswordVersions PRIMARY KEY,
-        Description                 NVarChar(128) NOT NULL,
+        Name                        NVarChar(128) NOT NULL,
         CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_PasswordVersions_CreatedDateTimeUtc DEFAULT GetUtcDate()
     );
 
     INSERT INTO $(IdentitySchema).PasswordVersions
-        (PasswordVersionId, Description)
+        (PasswordVersionId, Name)
     VALUES
         (  0, N'Pbkdf2 HMACSHA512');
 END
@@ -80,12 +80,12 @@ BEGIN
     CREATE TABLE $(IdentitySchema).PasswordResetStatuses
     (
         PasswordResetStatusId       SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_PasswordResetStatuses PRIMARY KEY,
-        Description                 NVarChar(128) NOT NULL,
+        Name                        NVarChar(128) NOT NULL,
         CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_PasswordResetStatuses_CreatedDateTimeUtc DEFAULT GetUtcDate()
     );
 
     INSERT INTO $(IdentitySchema).PasswordResetStatuses
-        (PasswordResetStatusId, Description)
+        (PasswordResetStatusId, Name)
     VALUES
         (  0, N'Open'),
         (  1, N'Aborted'),
@@ -111,12 +111,12 @@ BEGIN
     CREATE TABLE $(IdentitySchema).UserStatuses
     (
         UserStatusId                SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserStatuses PRIMARY KEY,
-        Description                 NVarChar(128) NOT NULL,
+        Name                        NVarChar(128) NOT NULL,
         CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_UserStatuses_CreatedDateTimeUtc DEFAULT GetUtcDate()
     );
 
     INSERT INTO $(IdentitySchema).UserStatuses
-        (UserStatusId, Description)
+        (UserStatusId, Name)
     VALUES
         (  0, N'Enabled'),
         (  1, N'Disabled'),
@@ -231,12 +231,12 @@ BEGIN
     CREATE TABLE $(IdentitySchema).SignInStatuses
     (
         SignInStatusId              SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_SignInStatuses PRIMARY KEY,
-        Description                 NVarChar(128) NOT NULL,
+        Name                        NVarChar(128) NOT NULL,
         CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_SignInStatuses_CreatedDateTimeUtc DEFAULT GetUtcDate()
     );
 
     INSERT INTO $(IdentitySchema).SignInStatuses
-        (SignInStatusId, Description)
+        (SignInStatusId, Name)
     VALUES
         (  0, N'Success'),
         (  1, N'Success - Must Change Password'),
@@ -266,12 +266,12 @@ BEGIN
     CREATE TABLE $(IdentitySchema).UserSessionStatuses
     (
         UserSessionStatusId         SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserSessionStatuses PRIMARY KEY,
-        Description                 NVarChar(128) NOT NULL,
+        Name                        NVarChar(128) NOT NULL,
         CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_UserSessionsStatuses_CreatedDateTimeUtc DEFAULT GetUtcDate()
     );
 
     INSERT INTO $(IdentitySchema).UserSessionStatuses
-        (UserSessionStatusId, Description)
+        (UserSessionStatusId, Name)
     VALUES
         (  0, N'Inactive'),
         (  1, N'Signed In'),
@@ -349,6 +349,7 @@ BEGIN
         OldValue                    NVarChar(256) NULL,
         NewValue                    NVarChar(256) NULL,
         IpAddress                   NVarChar(128) NOT NULL,
+        GoogleReCaptchaScore        Decimal(5, 2) NULL,
         CreatedDateTimeUtc          DateTime2(7) NOT NULL
     );
 END
@@ -387,12 +388,12 @@ BEGIN
     (
         RoleId                      SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_Roles PRIMARY KEY,
         RoleLevel                   SmallInt NOT NULL,
-        Description                 NVarChar(128) NOT NULL,
+        Name                        NVarChar(128) NOT NULL,
         CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_Roles_CreatedDateTimeUtc DEFAULT GetUtcDate()
     );
 
     INSERT INTO $(IdentitySchema).Roles
-        (RoleId, RoleLevel, Description)
+        (RoleId, RoleLevel, Name)
     VALUES
         ( 100,  1000, N'Global Administrator'),
         (1000, 30000, N'User');
@@ -450,18 +451,18 @@ GO
 
 --------------------------------------------------------------------------------
 
-IF OBJECT_ID(N'$(IdentitySchema).PasswordResets', N'U') IS NULL
+IF OBJECT_ID(N'$(IdentitySchema).UserPasswordResets', N'U') IS NULL
 BEGIN
-    CREATE TABLE $(IdentitySchema).PasswordResets
+    CREATE TABLE $(IdentitySchema).UserPasswordResets
     (
-        PasswordResetId             BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_PasswordResets PRIMARY KEY IDENTITY(0, 1),
-        PasswordResetStatusId       SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_PasswordResets_PasswordResetStatuses FOREIGN KEY (PasswordResetStatusId) REFERENCES $(IdentitySchema).PasswordResetStatuses(PasswordResetStatusId),
+        UserPasswordResetId         BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserPasswordResets PRIMARY KEY IDENTITY(0, 1),
+        PasswordResetStatusId       SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_UserPasswordResets_PasswordResetStatuses FOREIGN KEY (PasswordResetStatusId) REFERENCES $(IdentitySchema).PasswordResetStatuses(PasswordResetStatusId),
         ResetToken                  NVarChar(256) NOT NULL,
         RequestedDateTimeUtc        DateTime2(7) NOT NULL,
         ExpirationDurationMinutes   Int NOT NULL,
         EMailAddress                NVarChar(256) NOT NULL,
         IpAddress                   NVarChar(128) NOT NULL,
-        UserId                      BigInt NULL CONSTRAINT FK_$(IdentitySchema)_PasswordResets_Users FOREIGN KEY (UserId) REFERENCES $(IdentitySchema).Users(UserId)
+        UserId                      BigInt NULL CONSTRAINT FK_$(IdentitySchema)_UserPasswordResets_Users FOREIGN KEY (UserId) REFERENCES $(IdentitySchema).Users(UserId)
     );
 END
 GO
@@ -476,9 +477,9 @@ BEGIN
 END
 GO
 
-IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserSessions'), 'IX_$(IdentitySchema)_UserSessions_UserSessionToken', 'IndexID') IS NULL
+IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserSessions'), 'IX_$(IdentitySchema)_UserPasswordResets_ResetToken', 'IndexID') IS NULL
 BEGIN
-    CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_PasswordResets_ResetToken ON $(IdentitySchema).PasswordResets(ResetToken) INCLUDE (PasswordResetId, ExpirationDa);
+    CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_UserPasswordResets_ResetToken ON $(IdentitySchema).UserPasswordResets(ResetToken) INCLUDE (UserPasswordResetId, ExpirationDurationMinutes);
 END
 
 DECLARE @Error AS Int = @@ERROR;
@@ -503,7 +504,7 @@ DROP TABLE $(IdentitySchema).UserRoles;
 
 DROP TABLE $(IdentitySchema).Roles;
 
-DROP TABLE $(IdentitySchema).PasswordResets;
+DROP TABLE $(IdentitySchema).UserPasswordResets;
 
 DROP TABLE $(IdentitySchema).UserEMails;
 
