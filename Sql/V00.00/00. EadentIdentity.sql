@@ -300,6 +300,7 @@ BEGIN
     (
         UserSessionId                   BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserSessions PRIMARY KEY IDENTITY(0, 1),
         UserSessionToken                NVarChar(256) NOT NULL,
+        UserSessionGuid                 UniqueIdentifier NOT NULL,
         UserSessionStatusId             SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_UserSessions_UserSessionStatuses FOREIGN KEY (UserSessionStatusId) REFERENCES $(IdentitySchema).UserSessionStatuses(UserSessionStatusId),
         UserSessionExpirationMinutes    SmallInt NOT NULL,
         EMailAddress                    NVarChar(256) NOT NULL,
