@@ -152,7 +152,7 @@ BEGIN
         ChangePasswordNextSignIn        Bit NOT NULL,
         SignInErrorCount                Int NOT NULL,
         SignInErrorLimit                Int NOT NULL,
-        SignInLockOutDurationMinutes    Int NOT NULL,
+        SignInLockOutDurationSeconds    Int NOT NULL,
         SignInLockOutDateTimeUtc        DateTime2(7) NULL,
         CreatedDateTimeUtc              DateTime2(7) NOT NULL
     );
@@ -298,17 +298,17 @@ IF OBJECT_ID(N'$(IdentitySchema).UserSessions', N'U') IS NULL
 BEGIN
     CREATE TABLE $(IdentitySchema).UserSessions
     (
-        UserSessionId                   BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserSessions PRIMARY KEY IDENTITY(0, 1),
-        UserSessionToken                NVarChar(256) NOT NULL,
-        UserSessionGuid                 UniqueIdentifier NOT NULL,
-        UserSessionStatusId             SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_UserSessions_UserSessionStatuses FOREIGN KEY (UserSessionStatusId) REFERENCES $(IdentitySchema).UserSessionStatuses(UserSessionStatusId),
-        UserSessionExpirationMinutes    SmallInt NOT NULL,
-        EMailAddress                    NVarChar(256) NOT NULL,
-        IpAddress                       NVarChar(128) NOT NULL,
-        SignInStatusId                  SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_UserSessions_SignInStatuses FOREIGN KEY (SignInStatusId) REFERENCES $(IdentitySchema).SignInStatuses(SignInStatusId),
-        UserId                          BigInt NULL CONSTRAINT FK_$(IdentitySchema)_UserSessions_Users FOREIGN KEY (UserId) REFERENCES $(IdentitySchema).Users(UserId),
-        CreatedDateTimeUtc              DateTime2(7) NOT NULL,
-        LastAccessedDateTimeUtc         DateTime2(7) NOT NULL
+        UserSessionId                           BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserSessions PRIMARY KEY IDENTITY(0, 1),
+        UserSessionToken                        NVarChar(256) NOT NULL,
+        UserSessionGuid                         UniqueIdentifier NOT NULL,
+        UserSessionStatusId                     SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_UserSessions_UserSessionStatuses FOREIGN KEY (UserSessionStatusId) REFERENCES $(IdentitySchema).UserSessionStatuses(UserSessionStatusId),
+        UserSessionExpirationDurationSeconds    Int NOT NULL,
+        EMailAddress                            NVarChar(256) NOT NULL,
+        IpAddress                               NVarChar(128) NOT NULL,
+        SignInStatusId                          SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_UserSessions_SignInStatuses FOREIGN KEY (SignInStatusId) REFERENCES $(IdentitySchema).SignInStatuses(SignInStatusId),
+        UserId                                  BigInt NULL CONSTRAINT FK_$(IdentitySchema)_UserSessions_Users FOREIGN KEY (UserId) REFERENCES $(IdentitySchema).Users(UserId),
+        CreatedDateTimeUtc                      DateTime2(7) NOT NULL,
+        LastAccessedDateTimeUtc                 DateTime2(7) NOT NULL
     );
 END
 GO
@@ -460,7 +460,7 @@ BEGIN
         PasswordResetStatusId       SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_UserPasswordResets_PasswordResetStatuses FOREIGN KEY (PasswordResetStatusId) REFERENCES $(IdentitySchema).PasswordResetStatuses(PasswordResetStatusId),
         ResetToken                  NVarChar(256) NOT NULL,
         RequestedDateTimeUtc        DateTime2(7) NOT NULL,
-        ExpirationDurationMinutes   Int NOT NULL,
+        ExpirationDurationSeconds   Int NOT NULL,
         EMailAddress                NVarChar(256) NOT NULL,
         IpAddress                   NVarChar(128) NOT NULL,
         UserId                      BigInt NULL CONSTRAINT FK_$(IdentitySchema)_UserPasswordResets_Users FOREIGN KEY (UserId) REFERENCES $(IdentitySchema).Users(UserId)
@@ -480,7 +480,7 @@ GO
 
 IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserSessions'), 'IX_$(IdentitySchema)_UserPasswordResets_ResetToken', 'IndexID') IS NULL
 BEGIN
-    CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_UserPasswordResets_ResetToken ON $(IdentitySchema).UserPasswordResets(ResetToken) INCLUDE (UserPasswordResetId, ExpirationDurationMinutes);
+    CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_UserPasswordResets_ResetToken ON $(IdentitySchema).UserPasswordResets(ResetToken) INCLUDE (UserPasswordResetId, ExpirationDurationSeconds);
 END
 
 DECLARE @Error AS Int = @@ERROR;
