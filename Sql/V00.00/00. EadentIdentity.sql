@@ -193,8 +193,7 @@ BEGIN
         UserEMailId                 BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserEMails PRIMARY KEY IDENTITY(0, 1),
         UserId                      BigInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_UserEMails_Users FOREIGN KEY (UserId) REFERENCES $(IdentitySchema).Users(UserId),
         EMailAddress                NVarChar(256) NOT NULL CONSTRAINT UQ_$(IdentitySchema)_UserEMails_EMailAddress UNIQUE,
-        CreatedDateTimeUtc          DateTime2(7) NOT NULL,
-        VerifiedDateTimeUtc         DateTime2(7) NULL,
+        CreatedDateTimeUtc          DateTime2(7) NOT NULL
     );
 END
 GO
