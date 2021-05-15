@@ -237,14 +237,14 @@ BEGIN
     INSERT INTO $(IdentitySchema).SignInStatuses
         (SignInStatusId, Name)
     VALUES
-        (  0, N'Success'),
-        (  1, N'Success - Must Change Password'),
-        (  2, N'Error'),
-        (  3, N'Disabled'),
-        (  4, N'Locked Out'),
+        (  0, N'Error'),
+        (  1, N'Success'),
+        (  2, N'Success - Must Change Password'),
+        (  3, N'User Disabled'),
+        (  4, N'User Locked Out'),
         (  5, N'Invalid E-Mail Address'),
         (  6, N'Invalid Password'),
-        (100, N'Soft Deleted');
+        (100, N'User Soft Deleted');
 END
 GO
 
