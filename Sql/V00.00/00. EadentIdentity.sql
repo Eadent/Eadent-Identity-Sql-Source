@@ -87,10 +87,10 @@ BEGIN
     INSERT INTO $(IdentitySchema).PasswordResetStatuses
         (PasswordResetStatusId, Name)
     VALUES
-        (  0, N'Open'),
-        (  1, N'Aborted'),
-        (  2, N'TimedOutExpired'),
-        (  3, N'Closed');
+        (  0, N'Closed'),
+        (  1, N'Open'),
+        (  2, N'Aborted'),
+        (  3, N'TimedOutExpired');
 END
 GO
 
@@ -118,8 +118,8 @@ BEGIN
     INSERT INTO $(IdentitySchema).UserStatuses
         (UserStatusId, Name)
     VALUES
-        (  0, N'Enabled'),
-        (  1, N'Disabled'),
+        (  0, N'Disabled'),
+        (  1, N'Enabled'),
         (  2, N'Sign In Locked Out'),
         (100, N'Soft Deleted');
 END
@@ -141,20 +141,22 @@ IF OBJECT_ID(N'$(IdentitySchema).Users', N'U') IS NULL
 BEGIN
     CREATE TABLE $(IdentitySchema).Users
     (
-        UserId                          BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_Users PRIMARY KEY IDENTITY(0, 1),
-        UserGuid                        UniqueIdentifier NOT NULL,
-        UserStatusId                    SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_UserStatuses FOREIGN KEY (UserStatusId) REFERENCES $(IdentitySchema).UserStatuses(UserStatusId),
-        DisplayName                     NVarChar(256) NOT NULL,
-        PasswordVersionId               SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_PasswordVersions FOREIGN KEY (PasswordVersionId) REFERENCES $(IdentitySchema).PasswordVersions(PasswordVersionId),
-        SaltGuid                        UniqueIdentifier NOT NULL,
-        Password                        NVarChar(256) COLLATE SQL_Latin1_General_CP1_CS_AS NOT NULL,
-        PasswordDateTimeUtc             DateTime2(7) NOT NULL,
-        ChangePasswordNextSignIn        Bit NOT NULL,
-        SignInErrorCount                Int NOT NULL,
-        SignInErrorLimit                Int NOT NULL,
-        SignInLockOutDurationSeconds    Int NOT NULL,
-        SignInLockOutDateTimeUtc        DateTime2(7) NULL,
-        CreatedDateTimeUtc              DateTime2(7) NOT NULL
+        UserId                              BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_Users PRIMARY KEY IDENTITY(0, 1),
+        UserGuid                            UniqueIdentifier NOT NULL,
+        UserStatusId                        SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_UserStatuses FOREIGN KEY (UserStatusId) REFERENCES $(IdentitySchema).UserStatuses(UserStatusId),
+        DisplayName                         NVarChar(256) NOT NULL,
+        PasswordVersionId                   SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_PasswordVersions FOREIGN KEY (PasswordVersionId) REFERENCES $(IdentitySchema).PasswordVersions(PasswordVersionId),
+        PasswordHashIterationCount          Int NOT NULL,
+        PasswordHashNumDerivedKeyBytes      Int NOT NULL,
+        SaltGuid                            UniqueIdentifier NOT NULL,
+        Password                            NVarChar(256) COLLATE SQL_Latin1_General_CP1_CS_AS NOT NULL,
+        PasswordDateTimeUtc                 DateTime2(7) NOT NULL,
+        ChangePasswordNextSignIn            Bit NOT NULL,
+        SignInErrorCount                    Int NOT NULL,
+        SignInErrorLimit                    Int NOT NULL,
+        SignInLockOutDurationSeconds        Int NOT NULL,
+        SignInLockOutDateTimeUtc            DateTime2(7) NULL,
+        CreatedDateTimeUtc                  DateTime2(7) NOT NULL
     );
 END
 GO
