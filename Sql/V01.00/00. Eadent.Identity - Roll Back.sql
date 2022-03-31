@@ -6,7 +6,7 @@
 --
 -- Created: Éamonn A. Duffy, 2-May-2021.
 --
--- Updated: Éamonn A. Duffy, 30-March-2022.
+-- Updated: Éamonn A. Duffy, 31-March-2022.
 --
 -- Purpose: Roll Back Script for the Main Sql File for the Eadent Identity Sql Server Database.
 --
@@ -24,7 +24,7 @@
 -- Some Variables.
 --------------------------------------------------------------------------------
 
-:SETVAR IdentitySchema                          "Dad"
+:SETVAR IdentitySchema          "Dad"
 
 --------------------------------------------------------------------------------
 -- Drop Tables.
@@ -50,9 +50,9 @@ DROP TABLE IF EXISTS $(IdentitySchema).SignInStatuses;
 
 DROP TABLE IF EXISTS $(IdentitySchema).UserSessionStatuses;
 
-DROP TABLE IF EXISTS $(IdentitySchema).UserSignInTypes;
+DROP TABLE IF EXISTS $(IdentitySchema).SignInTypes;
 
-DROP TABLE IF EXISTS $(IdentitySchema).UserSignInMultiFactorAuthenticationTypes;
+DROP TABLE IF EXISTS $(IdentitySchema).SignInMultiFactorAuthenticationTypes;
 
 DROP TABLE IF EXISTS $(IdentitySchema).PasswordResetStatuses;
 

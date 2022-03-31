@@ -6,7 +6,7 @@
 --
 -- Created: Éamonn A. Duffy, 2-May-2021.
 --
--- Updated: Éamonn A. Duffy, 30-March-2022.
+-- Updated: Éamonn A. Duffy, 31-March-2022.
 --
 -- Purpose: Forward Script for the Main Sql File for the Eadent Identity Sql Server Database.
 --
@@ -24,7 +24,7 @@
 -- Some Variables.
 --------------------------------------------------------------------------------
 
-:SETVAR IdentitySchema                          "Dad"
+:SETVAR IdentitySchema          "Dad"
 
 --------------------------------------------------------------------------------
 -- Create Schema if/as appropriate.
@@ -109,17 +109,17 @@ GO
 
 --------------------------------------------------------------------------------
 
-IF OBJECT_ID(N'$(IdentitySchema).UserSignInMultiFactorAuthenticationTypes', N'U') IS NULL
+IF OBJECT_ID(N'$(IdentitySchema).SignInMultiFactorAuthenticationTypes', N'U') IS NULL
 BEGIN
-    CREATE TABLE $(IdentitySchema).UserSignInMultiFactorAuthenticationTypes
+    CREATE TABLE $(IdentitySchema).SignInMultiFactorAuthenticationTypes
     (
-        UserSignInMultiFactorAuthenticationTypeId   SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserSignInMultiFactorAuthenticationTypes PRIMARY KEY,
+        SignInMultiFactorAuthenticationTypeId       SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_SignInMultiFactorAuthenticationTypes PRIMARY KEY,
         Name                                        NVarChar(128) NOT NULL,
-        CreatedDateTimeUtc                          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_UserSignInMultiFactorAuthenticationTypes_CreatedDateTimeUtc DEFAULT GetUtcDate()
+        CreatedDateTimeUtc                          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_SignInMultiFactorAuthenticationTypes_CreatedDateTimeUtc DEFAULT GetUtcDate()
     );
 
-    INSERT INTO $(IdentitySchema).UserSignInMultiFactorAuthenticationTypes
-        (UserSignInMultiFactorAuthenticationTypeId, Name)
+    INSERT INTO $(IdentitySchema).SignInMultiFactorAuthenticationTypes
+        (SignInMultiFactorAuthenticationTypeId, Name)
     VALUES
         (  0, N'E-Mail');
 END
@@ -137,17 +137,17 @@ GO
 
 --------------------------------------------------------------------------------
 
-IF OBJECT_ID(N'$(IdentitySchema).UserSignInTypes', N'U') IS NULL
+IF OBJECT_ID(N'$(IdentitySchema).SignInTypes', N'U') IS NULL
 BEGIN
-    CREATE TABLE $(IdentitySchema).UserSignInTypes
+    CREATE TABLE $(IdentitySchema).SignInTypes
     (
-        UserSignInTypeId            SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserSignInTypes PRIMARY KEY,
+        SignInTypeId                SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_SignInTypes PRIMARY KEY,
         Name                        NVarChar(128) NOT NULL,
-        CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_UserSignInTypes_CreatedDateTimeUtc DEFAULT GetUtcDate()
+        CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_SignInTypes_CreatedDateTimeUtc DEFAULT GetUtcDate()
     );
 
-    INSERT INTO $(IdentitySchema).UserSignInTypes
-        (UserSignInTypeId, Name)
+    INSERT INTO $(IdentitySchema).SignInTypes
+        (SignInTypeId, Name)
     VALUES
         (  0, N'Web Site'),
         (  1, N'Web Api');
@@ -204,7 +204,7 @@ BEGIN
         UserId                                      BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_Users PRIMARY KEY IDENTITY(0, 1),
         UserGuid                                    UniqueIdentifier NOT NULL,
         UserStatusId                                SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_UserStatuses FOREIGN KEY (UserStatusId) REFERENCES $(IdentitySchema).UserStatuses(UserStatusId),
-        UserSignInMultiFactorAuthenticationTypeId   SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_UserSignInMultiFactorAuthenticationTypes FOREIGN KEY (UserSignInMultiFactorAuthenticationTypeId) REFERENCES $(IdentitySchema).UserSignInMultiFactorAuthenticationTypes(UserSignInMultiFactorAuthenticationTypeId),
+        SignInMultiFactorAuthenticationTypeId       SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_SignInMultiFactorAuthenticationTypes FOREIGN KEY (SignInMultiFactorAuthenticationTypeId) REFERENCES $(IdentitySchema).SignInMultiFactorAuthenticationTypes(SignInMultiFactorAuthenticationTypeId),
         DisplayName                                 NVarChar(256) NOT NULL,
         PasswordVersionId                           SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_PasswordVersions FOREIGN KEY (PasswordVersionId) REFERENCES $(IdentitySchema).PasswordVersions(PasswordVersionId),
         PasswordHashIterationCount                  Int NOT NULL,
@@ -559,39 +559,3 @@ GO
 --------------------------------------------------------------------------------
 -- End Of File.
 --------------------------------------------------------------------------------
-
-/*
-
-:SETVAR IdentitySchema      "Dad"
-
-DROP TABLE $(IdentitySchema).UserRoles;
-
-DROP TABLE $(IdentitySchema).Roles;
-
-DROP TABLE $(IdentitySchema).UserPasswordResets;
-
-DROP TABLE $(IdentitySchema).UserEMails;
-
-DROP TABLE $(IdentitySchema).UserSessions;
-
-DROP TABLE $(IdentitySchema).UserAudits;
-
-DROP TABLE $(IdentitySchema).Users;
-
-DROP TABLE $(IdentitySchema).UserStatuses;
-
-DROP TABLE $(IdentitySchema).SignInStatuses;
-
-DROP TABLE $(IdentitySchema).UserSessionStatuses;
-
-DROP TABLE $(IdentitySchema).UserSignInTypes;
-
-DROP TABLE $(IdentitySchema).UserSignInMultiFactorAuthenticationTypes;
-
-DROP TABLE $(IdentitySchema).PasswordResetStatuses;
-
-DROP TABLE $(IdentitySchema).PasswordVersions;
-
-DROP SCHEMA $(IdentitySchema);
-
-*/
