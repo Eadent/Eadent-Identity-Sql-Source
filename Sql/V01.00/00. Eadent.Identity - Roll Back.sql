@@ -36,8 +36,6 @@ DROP TABLE IF EXISTS $(IdentitySchema).Roles;
 
 DROP TABLE IF EXISTS $(IdentitySchema).UserPasswordResets;
 
-DROP TABLE IF EXISTS $(IdentitySchema).UserEMails;
-
 DROP TABLE IF EXISTS $(IdentitySchema).UserSessions;
 
 DROP TABLE IF EXISTS $(IdentitySchema).UserAudits;
@@ -57,6 +55,10 @@ DROP TABLE IF EXISTS $(IdentitySchema).SignInMultiFactorAuthenticationTypes;
 DROP TABLE IF EXISTS $(IdentitySchema).PasswordResetStatuses;
 
 DROP TABLE IF EXISTS $(IdentitySchema).PasswordVersions;
+
+DROP TABLE IF EXISTS $(IdentitySchema).ConfirmationStatuses;
+
+DROP TABLE IF EXISTS $(IdentitySchema).Applications;
 
 --------------------------------------------------------------------------------
 -- Drop Schema if/as appropriate.
