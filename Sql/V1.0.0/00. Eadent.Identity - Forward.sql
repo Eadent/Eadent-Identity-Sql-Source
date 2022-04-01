@@ -2,11 +2,11 @@
 -- Copyright © 2021+ Éamonn Anthony Duffy. All Rights Reserved.
 --------------------------------------------------------------------------------
 --
--- Version: V01.00.
+-- Version: V1.0.0.
 --
 -- Created: Éamonn A. Duffy, 2-May-2021.
 --
--- Updated: Éamonn A. Duffy, 31-March-2022.
+-- Updated: Éamonn A. Duffy, 1-April-2022.
 --
 -- Purpose: Forward Script for the Main Sql File for the Eadent Identity Sql Server Database.
 --
@@ -16,13 +16,18 @@
 --
 --  1.  This Sql file may be run as is or may be included via another Sql File along the lines of:
 --
---          :R "\Projects\Eadent\Eadent-Identity-Sql-Source\Sql\V01.00\00. Eadent.Identity - Forward.sql"
+--          :R "B:\Projects\Eadent\Eadent-Identity-Sql-Source\Sql\V1.0.0\00. Eadent.Identity - Forward.sql"
 --
 --------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
 -- Some Variables.
 --------------------------------------------------------------------------------
+
+:SETVAR DatabaseVersionMajor             1
+:SETVAR DatabaseVersionMinor             0
+:SETVAR DatabaseVersionPatch             0
+:SETVAR DatabaseVersionBuild            "0"
 
 :SETVAR IdentitySchema					"Dad"
 
@@ -45,6 +50,8 @@ GO
 
 IF SCHEMA_ID(N'$(IdentitySchema)') IS NULL
 BEGIN
+	PRINT N'Creating the Schema.';
+
     EXECUTE(N'CREATE SCHEMA $(IdentitySchema);');
 END
 GO
@@ -63,21 +70,23 @@ GO
 -- Create Tables if/as appropriate.
 --------------------------------------------------------------------------------
 
-IF OBJECT_ID(N'$(IdentitySchema).Applications', N'U') IS NULL
+IF OBJECT_ID(N'$(IdentitySchema).DatabaseVersions', N'U') IS NULL
 BEGIN
-    CREATE TABLE $(IdentitySchema).Applications
-    (
-        ApplicationId               Int NOT NULL CONSTRAINT PK_$(IdentitySchema)_Applications PRIMARY KEY,
-        Name                        NVarChar(128) NOT NULL,
-        CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_Applications_CreatedDateTimeUtc DEFAULT GetUtcDate(),
-        LastUpdatedDateTimeUtc      DateTime2(7) NULL
-    );
+    PRINT N'Creating the DatabaseVersions Table.';
 
-    INSERT INTO $(IdentitySchema).Applications
-        (ApplicationId, Name)
-    VALUES
-        (  0, N'Central Security Service Administration Web Site'),
-        (  1, N'Central Security Service Web Site');
+    CREATE TABLE $(IdentitySchema).DatabaseVersions
+    (
+        DatabaseVersionId           Int NOT NULL CONSTRAINT PK_$(IdentitySchema)_DatabaseVersions PRIMARY KEY IDENTITY(0, 1),
+        Major                       Int NOT NULL,
+        Minor                       Int NOT NULL,
+        Patch                       Int NOT NULL,
+        Build                       NVarChar(128) NOT NULL,
+        Description                 NVarChar(256) NOT NULL,
+        CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_DatabaseVersions_CreatedDateTimeUtc DEFAULT GetUtcDate(),
+        LastUpdatedDateTimeUtc      DateTime2(7) NULL,
+        
+        CONSTRAINT UQ_$(IdentitySchema)_DatabaseVersions_Version UNIQUE (Major, Minor, Patch, Build)
+    );
 END
 GO
 
@@ -95,6 +104,8 @@ GO
 
 IF OBJECT_ID(N'$(IdentitySchema).ConfirmationStatuses', N'U') IS NULL
 BEGIN
+    PRINT N'Creating the ConfirmationStatuses Table.';
+
     CREATE TABLE $(IdentitySchema).ConfirmationStatuses
     (
         ConfirmationStatusId        SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_ConfirmationStatuses PRIMARY KEY,
@@ -125,6 +136,8 @@ GO
 
 IF OBJECT_ID(N'$(IdentitySchema).PasswordVersions', N'U') IS NULL
 BEGIN
+    PRINT N'Creating the PasswordVersions Table.';
+
     CREATE TABLE $(IdentitySchema).PasswordVersions
     (
         PasswordVersionId           SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_PasswordVersions PRIMARY KEY,
@@ -154,6 +167,8 @@ GO
 
 IF OBJECT_ID(N'$(IdentitySchema).PasswordResetStatuses', N'U') IS NULL
 BEGIN
+    PRINT N'Creating the PasswordResetStatuses Table.';
+
     CREATE TABLE $(IdentitySchema).PasswordResetStatuses
     (
         PasswordResetStatusId       SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_PasswordResetStatuses PRIMARY KEY,
@@ -186,6 +201,8 @@ GO
 
 IF OBJECT_ID(N'$(IdentitySchema).SignInMultiFactorAuthenticationTypes', N'U') IS NULL
 BEGIN
+    PRINT N'Creating the SignInMultiFactorAuthenticationTypes Table.';
+
     CREATE TABLE $(IdentitySchema).SignInMultiFactorAuthenticationTypes
     (
         SignInMultiFactorAuthenticationTypeId       SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_SignInMultiFactorAuthenticationTypes PRIMARY KEY,
@@ -215,6 +232,8 @@ GO
 
 IF OBJECT_ID(N'$(IdentitySchema).SignInTypes', N'U') IS NULL
 BEGIN
+    PRINT N'Creating the SignInMultiFactorAuthenticationTypes Table.';
+
     CREATE TABLE $(IdentitySchema).SignInTypes
     (
         SignInTypeId                SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_SignInTypes PRIMARY KEY,
@@ -245,6 +264,8 @@ GO
 
 IF OBJECT_ID(N'$(IdentitySchema).UserStatuses', N'U') IS NULL
 BEGIN
+    PRINT N'Creating the UserStatuses Table.';
+
     CREATE TABLE $(IdentitySchema).UserStatuses
     (
         UserStatusId                SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserStatuses PRIMARY KEY,
@@ -277,12 +298,14 @@ GO
 
 IF OBJECT_ID(N'$(IdentitySchema).Users', N'U') IS NULL
 BEGIN
+    PRINT N'Creating the Users Table.';
+
     CREATE TABLE $(IdentitySchema).Users
     (
         UserId                                      BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_Users PRIMARY KEY IDENTITY(0, 1),
         UserGuid                                    UniqueIdentifier NOT NULL,
         UserStatusId                                SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_UserStatuses FOREIGN KEY (UserStatusId) REFERENCES $(IdentitySchema).UserStatuses(UserStatusId),
-        CreatedByApplicationId                      Int NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_CreatedByApplicationId FOREIGN KEY (CreatedByApplicationId) REFERENCES $(IdentitySchema).Applications(ApplicationId),
+        CreatedByApplicationId                      Int NOT NULL,
         SignInMultiFactorAuthenticationTypeId       SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_SignInMultiFactorAuthenticationTypes FOREIGN KEY (SignInMultiFactorAuthenticationTypeId) REFERENCES $(IdentitySchema).SignInMultiFactorAuthenticationTypes(SignInMultiFactorAuthenticationTypeId),
         DisplayName                                 NVarChar(256) NOT NULL,
         EMailAddress                                NVarChar(256) NOT NULL CONSTRAINT UQ_$(IdentitySchema)_Users_EMailAddress UNIQUE,
@@ -318,34 +341,10 @@ BEGIN
 END
 GO
 
-IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).Users'), 'IX_$(IdentitySchema)_Users_UserGuid', 'IndexID') IS NULL
+IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).Users'), 'IX_$(IdentitySchema)_Users_UserGuid', 'IndexId') IS NULL
 BEGIN
     CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_Users_UserGuid ON $(IdentitySchema).Users(UserGuid) INCLUDE (UserId);
 END
-
-DECLARE @Error AS Int = @@ERROR;
-IF (@Error != 0)
-BEGIN
-    IF @@TRANCOUNT > 0
-        ROLLBACK TRANSACTION;
-    BEGIN TRANSACTION;
-    SET CONTEXT_INFO 0x01;
-END
-GO
-
---------------------------------------------------------------------------------
-
-IF OBJECT_ID(N'$(IdentitySchema).UserEMails', N'U') IS NULL
-BEGIN
-    CREATE TABLE $(IdentitySchema).UserEMails
-    (
-        UserEMailId                 BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserEMails PRIMARY KEY IDENTITY(0, 1),
-        UserId                      BigInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_UserEMails_Users FOREIGN KEY (UserId) REFERENCES $(IdentitySchema).Users(UserId),
-        EMailAddress                NVarChar(256) NOT NULL CONSTRAINT UQ_$(IdentitySchema)_UserEMails_EMailAddress UNIQUE,
-        CreatedDateTimeUtc          DateTime2(7) NOT NULL,
-        LastUpdatedDateTimeUtc      DateTime2(7) NULL
-    );
-END
 GO
 
 DECLARE @Error AS Int = @@ERROR;
@@ -358,10 +357,27 @@ BEGIN
 END
 GO
 
-IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserEMails'), 'IX_$(IdentitySchema)_UserEMails_EMailAddress', 'IndexID') IS NULL
+IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).Users'), 'IX_$(IdentitySchema)_Users_EMailAddress', 'IndexId') IS NULL
 BEGIN
-    CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_UserEMails_EMailAddress ON $(IdentitySchema).UserEMails(EMailAddress) INCLUDE (UserId, UserEMailId);
+    CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_Users_EMailAddress ON $(IdentitySchema).Users(EMailAddress) INCLUDE (UserId);
 END
+GO
+
+DECLARE @Error AS Int = @@ERROR;
+IF (@Error != 0)
+BEGIN
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+    BEGIN TRANSACTION;
+    SET CONTEXT_INFO 0x01;
+END
+GO
+
+IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).Users'), 'IX_$(IdentitySchema)_Users_MobilePhoneNumber', 'IndexId') IS NULL
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_Users_MobilePhoneNumber ON $(IdentitySchema).Users(MobilePhoneNumber) INCLUDE (UserId);
+END
+GO
 
 DECLARE @Error AS Int = @@ERROR;
 IF (@Error != 0)
@@ -377,6 +393,8 @@ GO
 
 IF OBJECT_ID(N'$(IdentitySchema).SignInStatuses', N'U') IS NULL
 BEGIN
+    PRINT N'Creating the SignInStatuses Table.';
+
     CREATE TABLE $(IdentitySchema).SignInStatuses
     (
         SignInStatusId              SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_SignInStatuses PRIMARY KEY,
@@ -414,6 +432,8 @@ GO
 
 IF OBJECT_ID(N'$(IdentitySchema).UserSessionStatuses', N'U') IS NULL
 BEGIN
+    PRINT N'Creating the UserSessionStatuses Table.';
+
     CREATE TABLE $(IdentitySchema).UserSessionStatuses
     (
         UserSessionStatusId         SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserSessionStatuses PRIMARY KEY,
@@ -448,6 +468,8 @@ GO
 
 IF OBJECT_ID(N'$(IdentitySchema).UserSessions', N'U') IS NULL
 BEGIN
+    PRINT N'Creating the UserSessions Table.';
+
     CREATE TABLE $(IdentitySchema).UserSessions
     (
         UserSessionId                           BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserSessions PRIMARY KEY IDENTITY(0, 1),
@@ -475,10 +497,11 @@ BEGIN
 END
 GO
 
-IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserSessions'), 'IX_$(IdentitySchema)_UserSessions_UserSessionToken', 'IndexID') IS NULL
+IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserSessions'), 'IX_$(IdentitySchema)_UserSessions_UserSessionToken', 'IndexId') IS NULL
 BEGIN
     CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_UserSessions_UserSessionToken ON $(IdentitySchema).UserSessions(UserSessionToken) INCLUDE (UserSessionId, UserIpAddress, SignInStatusId, UserId);
 END
+GO
 
 DECLARE @Error AS Int = @@ERROR;
 IF (@Error != 0)
@@ -494,6 +517,8 @@ GO
 
 IF OBJECT_ID(N'$(IdentitySchema).UserAudits', N'U') IS NULL
 BEGIN
+    PRINT N'Creating the UserAudits Table.';
+
     CREATE TABLE $(IdentitySchema).UserAudits
     (
         UserAuditId                 BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserAudits PRIMARY KEY IDENTITY(0, 1),
@@ -519,10 +544,11 @@ BEGIN
 END
 GO
 
-IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserAudits'), 'IX_$(IdentitySchema)_UserAudits_UserId', 'IndexID') IS NULL
+IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserAudits'), 'IX_$(IdentitySchema)_UserAudits_UserId', 'IndexId') IS NULL
 BEGIN
     CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_UserAudits_UserId ON $(IdentitySchema).UserAudits(UserId) INCLUDE (UserAuditId);
 END
+GO
 
 DECLARE @Error AS Int = @@ERROR;
 IF (@Error != 0)
@@ -538,6 +564,8 @@ GO
 
 IF OBJECT_ID(N'$(IdentitySchema).Roles', N'U') IS NULL
 BEGIN
+    PRINT N'Creating the Roles Table.';
+
     CREATE TABLE $(IdentitySchema).Roles
     (
         RoleId                      SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_Roles PRIMARY KEY,
@@ -569,6 +597,8 @@ GO
 
 IF OBJECT_ID(N'$(IdentitySchema).UserRoles', N'U') IS NULL
 BEGIN
+    PRINT N'Creating the UserRoles Table.';
+
     CREATE TABLE $(IdentitySchema).UserRoles
     (
         UserRoleId                  BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserRoles PRIMARY KEY IDENTITY(0, 1),
@@ -590,10 +620,11 @@ BEGIN
 END
 GO
 
-IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserRoles'), 'IX_$(IdentitySchema)_UserRoles_UserId', 'IndexID') IS NULL
+IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserRoles'), 'IX_$(IdentitySchema)_UserRoles_UserId', 'IndexId') IS NULL
 BEGIN
     CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_UserRoles_UserId ON $(IdentitySchema).UserRoles(UserId) INCLUDE (RoleId);
 END
+GO
 
 DECLARE @Error AS Int = @@ERROR;
 IF (@Error != 0)
@@ -609,6 +640,8 @@ GO
 
 IF OBJECT_ID(N'$(IdentitySchema).UserPasswordResets', N'U') IS NULL
 BEGIN
+    PRINT N'Creating the UserPasswordResets Table.';
+
     CREATE TABLE $(IdentitySchema).UserPasswordResets
     (
         UserPasswordResetId         BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserPasswordResets PRIMARY KEY IDENTITY(0, 1),
@@ -635,10 +668,36 @@ BEGIN
 END
 GO
 
-IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserSessions'), 'IX_$(IdentitySchema)_UserPasswordResets_ResetToken', 'IndexID') IS NULL
+IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserSessions'), 'IX_$(IdentitySchema)_UserPasswordResets_ResetToken', 'IndexId') IS NULL
 BEGIN
     CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_UserPasswordResets_ResetToken ON $(IdentitySchema).UserPasswordResets(ResetToken) INCLUDE (UserPasswordResetId, ExpirationDurationSeconds);
 END
+GO
+
+DECLARE @Error AS Int = @@ERROR;
+IF (@Error != 0)
+BEGIN
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+    BEGIN TRANSACTION;
+    SET CONTEXT_INFO 0x01;
+END
+GO
+
+--------------------------------------------------------------------------------
+-- Insert the Database Version.
+--------------------------------------------------------------------------------
+
+IF NOT EXISTS (SELECT 1 FROM $(IdentitySchema).DatabaseVersions WHERE Major = $(DatabaseVersionMajor) AND Minor = $(DatabaseVersionMinor) AND Patch = $(DatabaseVersionPatch) AND Build = N'$(DatabaseVersionBuild)')
+BEGIN
+    PRINT N'Inserting the Database Version.';
+
+    INSERT INTO $(IdentitySchema).DatabaseVersions
+        (Major, Minor, Patch, Build, Description)
+    VALUES
+        ($(DatabaseVersionMajor), $(DatabaseVersionMinor), $(DatabaseVersionPatch), N'$(DatabaseVersionBuild)', N'$(DatabaseVersionDescription)');
+END
+GO
 
 DECLARE @Error AS Int = @@ERROR;
 IF (@Error != 0)

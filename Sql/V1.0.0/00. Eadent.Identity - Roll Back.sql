@@ -2,11 +2,11 @@
 -- Copyright © 2021+ Éamonn Anthony Duffy. All Rights Reserved.
 --------------------------------------------------------------------------------
 --
--- Version: V01.00.
+-- Version: V1.0.0.
 --
 -- Created: Éamonn A. Duffy, 2-May-2021.
 --
--- Updated: Éamonn A. Duffy, 31-March-2022.
+-- Updated: Éamonn A. Duffy, 1-April-2022.
 --
 -- Purpose: Roll Back Script for the Main Sql File for the Eadent Identity Sql Server Database.
 --
@@ -16,7 +16,7 @@
 --
 --  1.  This Sql file may be run as is or may be included via another Sql File along the lines of:
 --
---          :R "\Projects\Eadent\Eadent-Identity-Sql-Source\Sql\V01.00\00. Eadent.Identity - Roll Back.sql"
+--          :R "B:\Projects\Eadent\Eadent-Identity-Sql-Source\Sql\V1.0.0\00. Eadent.Identity - Roll Back.sql"
 --
 --------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@
 :SETVAR DatabaseVersionPatch             0
 :SETVAR DatabaseVersionBuild            "0"
 
-:SETVAR IdentitySchema          "Dad"
+:SETVAR IdentitySchema          		"Dad"
 
 --------------------------------------------------------------------------------
 -- Drop Tables.
@@ -63,7 +63,15 @@ DROP TABLE IF EXISTS $(IdentitySchema).PasswordVersions;
 
 DROP TABLE IF EXISTS $(IdentitySchema).ConfirmationStatuses;
 
-DROP TABLE IF EXISTS $(IdentitySchema).Applications;
+IF OBJECT_ID(N'$(IdentitySchema).DatabaseVersions', N'U') IS NOT NULL
+BEGIN
+    DELETE FROM $(IdentitySchema).DatabaseVersions
+    WHERE Major = $(DatabaseVersionMajor) AND Minor = $(DatabaseVersionMinor) AND Patch = $(DatabaseVersionPatch) AND Build = N'$(DatabaseVersionBuild)';
+END
+GO
+
+-- NOTE: In Future Versions *ONLY* DELETE the relevant Database Version Row and leave the Table otherwise intact.
+DROP TABLE IF EXISTS $(IdentitySchema).DatabaseVersions;
 
 --------------------------------------------------------------------------------
 -- Drop Schema if/as appropriate.
