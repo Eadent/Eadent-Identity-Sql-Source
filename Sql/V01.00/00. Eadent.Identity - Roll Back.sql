@@ -24,6 +24,11 @@
 -- Some Variables.
 --------------------------------------------------------------------------------
 
+:SETVAR DatabaseVersionMajor             1
+:SETVAR DatabaseVersionMinor             0
+:SETVAR DatabaseVersionPatch             0
+:SETVAR DatabaseVersionBuild            "0"
+
 :SETVAR IdentitySchema          "Dad"
 
 --------------------------------------------------------------------------------
