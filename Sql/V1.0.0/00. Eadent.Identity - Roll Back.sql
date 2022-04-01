@@ -29,7 +29,7 @@
 :SETVAR DatabaseVersionPatch             0
 :SETVAR DatabaseVersionBuild            "0"
 
-:SETVAR IdentitySchema          		"Dad"
+:SETVAR IdentitySchema                  "Dad"
 
 --------------------------------------------------------------------------------
 -- Drop Tables.

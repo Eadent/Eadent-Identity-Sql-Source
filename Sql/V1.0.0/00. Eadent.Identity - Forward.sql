@@ -29,7 +29,7 @@
 :SETVAR DatabaseVersionPatch             0
 :SETVAR DatabaseVersionBuild            "0"
 
-:SETVAR IdentitySchema					"Dad"
+:SETVAR IdentitySchema                  "Dad"
 
 --------------------------------------------------------------------------------
 -- Begin.
@@ -50,7 +50,7 @@ GO
 
 IF SCHEMA_ID(N'$(IdentitySchema)') IS NULL
 BEGIN
-	PRINT N'Creating the Schema.';
+    PRINT N'Creating the Schema.';
 
     EXECUTE(N'CREATE SCHEMA $(IdentitySchema);');
 END
