@@ -215,7 +215,7 @@ BEGIN
     INSERT INTO $(IdentitySchema).SignInMultiFactorAuthenticationTypes
         (SignInMultiFactorAuthenticationTypeId, SignInMultiFactorAuthenticationType)
     VALUES
-        (  0, N'E-Mail');
+        (  0, N'None');
 END
 GO
 
