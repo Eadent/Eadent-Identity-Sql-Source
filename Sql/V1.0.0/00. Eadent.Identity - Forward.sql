@@ -71,22 +71,22 @@ GO
 -- Create Tables if/as appropriate.
 --------------------------------------------------------------------------------
 
-IF OBJECT_ID(N'$(IdentitySchema).DatabaseVersions', N'U') IS NULL
+IF OBJECT_ID(N'$(IdentitySchema).EadentIdentityDatabaseVersions', N'U') IS NULL
 BEGIN
-    PRINT N'Creating the DatabaseVersions Table.';
+    PRINT N'Creating the EadentIdentityDatabaseVersions Table.';
 
-    CREATE TABLE $(IdentitySchema).DatabaseVersions
+    CREATE TABLE $(IdentitySchema).EadentIdentityDatabaseVersions
     (
-        DatabaseVersionId           Int NOT NULL CONSTRAINT PK_$(IdentitySchema)_DatabaseVersions PRIMARY KEY IDENTITY(0, 1),
+        DatabaseVersionId           Int NOT NULL CONSTRAINT PK_$(IdentitySchema)_EadentIdentityDatabaseVersions PRIMARY KEY IDENTITY(0, 1),
         Major                       Int NOT NULL,
         Minor                       Int NOT NULL,
         Patch                       Int NOT NULL,
         Build                       NVarChar(128) NOT NULL,
         Description                 NVarChar(256) NOT NULL,
-        CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_DatabaseVersions_CreatedDateTimeUtc DEFAULT GetUtcDate(),
+        CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_EadentIdentityDatabaseVersions_CreatedDateTimeUtc DEFAULT GetUtcDate(),
         LastUpdatedDateTimeUtc      DateTime2(7) NULL,
         
-        CONSTRAINT UQ_$(IdentitySchema)_DatabaseVersions_Version UNIQUE (Major, Minor, Patch, Build)
+        CONSTRAINT UQ_$(IdentitySchema)_EadentIdentityDatabaseVersions_Version UNIQUE (Major, Minor, Patch, Build)
     );
 END
 GO
@@ -688,11 +688,11 @@ GO
 -- Insert the Database Version.
 --------------------------------------------------------------------------------
 
-IF NOT EXISTS (SELECT 1 FROM $(IdentitySchema).DatabaseVersions WHERE Major = $(IdentityDatabaseVersionMajor) AND Minor = $(IdentityDatabaseVersionMinor) AND Patch = $(IdentityDatabaseVersionPatch) AND Build = N'$(IdentityDatabaseVersionBuild)')
+IF NOT EXISTS (SELECT 1 FROM $(IdentitySchema).EadentIdentityDatabaseVersions WHERE Major = $(IdentityDatabaseVersionMajor) AND Minor = $(IdentityDatabaseVersionMinor) AND Patch = $(IdentityDatabaseVersionPatch) AND Build = N'$(IdentityDatabaseVersionBuild)')
 BEGIN
     PRINT N'Inserting the Database Version.';
 
-    INSERT INTO $(IdentitySchema).DatabaseVersions
+    INSERT INTO $(IdentitySchema).EadentIdentityDatabaseVersions
         (Major, Minor, Patch, Build, Description)
     VALUES
         ($(IdentityDatabaseVersionMajor), $(IdentityDatabaseVersionMinor), $(IdentityDatabaseVersionPatch), N'$(IdentityDatabaseVersionBuild)', N'$(IdentityDatabaseVersionDescription)');

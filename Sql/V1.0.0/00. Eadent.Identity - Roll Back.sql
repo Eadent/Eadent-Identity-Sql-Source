@@ -64,15 +64,15 @@ DROP TABLE IF EXISTS $(IdentitySchema).PasswordVersions;
 
 DROP TABLE IF EXISTS $(IdentitySchema).ConfirmationStatuses;
 
-IF OBJECT_ID(N'$(IdentitySchema).DatabaseVersions', N'U') IS NOT NULL
+IF OBJECT_ID(N'$(IdentitySchema).EadentIdentityDatabaseVersions', N'U') IS NOT NULL
 BEGIN
-    DELETE FROM $(IdentitySchema).DatabaseVersions
+    DELETE FROM $(IdentitySchema).EadentIdentityDatabaseVersions
     WHERE Major = $(IdentityDatabaseVersionMajor) AND Minor = $(IdentityDatabaseVersionMinor) AND Patch = $(IdentityDatabaseVersionPatch) AND Build = N'$(IdentityDatabaseVersionBuild)';
 END
 GO
 
 -- NOTE: In Future Versions *ONLY* DELETE the relevant Database Version Row and leave the Table otherwise intact.
-DROP TABLE IF EXISTS $(IdentitySchema).DatabaseVersions;
+DROP TABLE IF EXISTS $(IdentitySchema).EadentIdentityDatabaseVersions;
 
 --------------------------------------------------------------------------------
 -- Drop Schema if/as appropriate.
