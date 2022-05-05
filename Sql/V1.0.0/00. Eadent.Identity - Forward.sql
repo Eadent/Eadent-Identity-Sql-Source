@@ -6,9 +6,9 @@
 --
 -- Created: Éamonn A. Duffy, 2-May-2021.
 --
--- Updated: Éamonn A. Duffy, 1-April-2022.
+-- Updated: Éamonn A. Duffy, 5-May-2022.
 --
--- Purpose: Forward Script for the Main Sql File for the Eadent Identity Sql Server Database.
+-- Purpose: Forward Script for the Main Sql for the Eadent Identity Sql Server Database.
 --
 -- Assumptions:
 --
@@ -24,12 +24,13 @@
 -- Some Variables.
 --------------------------------------------------------------------------------
 
-:SETVAR DatabaseVersionMajor             1
-:SETVAR DatabaseVersionMinor             0
-:SETVAR DatabaseVersionPatch             0
-:SETVAR DatabaseVersionBuild            "0"
+:SETVAR IdentityDatabaseVersionMajor             1
+:SETVAR IdentityDatabaseVersionMinor             0
+:SETVAR IdentityDatabaseVersionPatch             0
+:SETVAR IdentityDatabaseVersionBuild            "0"
+:SETVAR IdentityDatabaseVersionDescription      "Beta Build."
 
-:SETVAR IdentitySchema                  "Dad"
+:SETVAR IdentitySchema                          "Dad_Identity"
 
 --------------------------------------------------------------------------------
 -- Begin.
@@ -50,7 +51,7 @@ GO
 
 IF SCHEMA_ID(N'$(IdentitySchema)') IS NULL
 BEGIN
-    PRINT N'Creating the Schema.';
+    PRINT N'Creating the Schema: $(IdentitySchema)';
 
     EXECUTE(N'CREATE SCHEMA $(IdentitySchema);');
 END
@@ -309,10 +310,10 @@ BEGIN
         SignInMultiFactorAuthenticationTypeId       SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_SignInMultiFactorAuthenticationTypes FOREIGN KEY (SignInMultiFactorAuthenticationTypeId) REFERENCES $(IdentitySchema).SignInMultiFactorAuthenticationTypes(SignInMultiFactorAuthenticationTypeId),
         DisplayName                                 NVarChar(256) NOT NULL,
         EMailAddress                                NVarChar(256) NOT NULL CONSTRAINT UQ_$(IdentitySchema)_Users_EMailAddress UNIQUE,
-        EMailAddressConfirmationStatusId            SmallInt NOT NULL,
+        EMailAddressConfirmationStatusId            SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_ConfirmationStatuses_EMailAddress FOREIGN KEY (EMailAddressConfirmationStatusId) REFERENCES $(IdentitySchema).ConfirmationStatuses(ConfirmationStatusId),
         EMailAddressConfirmationCode                NVarChar(128) NULL,
         MobilePhoneNumber                           NVarChar(32) NOT NULL CONSTRAINT UQ_$(IdentitySchema)_Users_MobilePhoneNumber UNIQUE,
-        MobilePhoneNumberConfirmationStatusId       SmallInt NOT NULL,
+        MobilePhoneNumberConfirmationStatusId       SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_ConfirmationStatuses_MobilePhoneNumber FOREIGN KEY (MobilePhoneNumberConfirmationStatusId) REFERENCES $(IdentitySchema).ConfirmationStatuses(ConfirmationStatusId),
         MobilePhoneNumberConfirmationCode           NVarChar(128) NULL,
         PasswordVersionId                           SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_PasswordVersions FOREIGN KEY (PasswordVersionId) REFERENCES $(IdentitySchema).PasswordVersions(PasswordVersionId),
         PasswordHashIterationCount                  Int NOT NULL,
@@ -667,9 +668,9 @@ BEGIN
 END
 GO
 
-IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserSessions'), 'IX_$(IdentitySchema)_UserPasswordResets_ResetToken', 'IndexId') IS NULL
+IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserPasswordResets'), 'IX_$(IdentitySchema)_UserPasswordResets_ResetToken', 'IndexId') IS NULL
 BEGIN
-    CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_UserPasswordResets_ResetToken ON $(IdentitySchema).UserPasswordResets(ResetToken) INCLUDE (UserPasswordResetId, ExpirationDurationSeconds);
+    CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_UserPasswordResets_ResetToken ON $(IdentitySchema).UserPasswordResets(ResetToken) INCLUDE (UserPasswordResetId, ResetTokenExpirationDurationSeconds);
 END
 GO
 
@@ -687,14 +688,14 @@ GO
 -- Insert the Database Version.
 --------------------------------------------------------------------------------
 
-IF NOT EXISTS (SELECT 1 FROM $(IdentitySchema).DatabaseVersions WHERE Major = $(DatabaseVersionMajor) AND Minor = $(DatabaseVersionMinor) AND Patch = $(DatabaseVersionPatch) AND Build = N'$(DatabaseVersionBuild)')
+IF NOT EXISTS (SELECT 1 FROM $(IdentitySchema).DatabaseVersions WHERE Major = $(IdentityDatabaseVersionMajor) AND Minor = $(IdentityDatabaseVersionMinor) AND Patch = $(IdentityDatabaseVersionPatch) AND Build = N'$(IdentityDatabaseVersionBuild)')
 BEGIN
     PRINT N'Inserting the Database Version.';
 
     INSERT INTO $(IdentitySchema).DatabaseVersions
         (Major, Minor, Patch, Build, Description)
     VALUES
-        ($(DatabaseVersionMajor), $(DatabaseVersionMinor), $(DatabaseVersionPatch), N'$(DatabaseVersionBuild)', N'$(DatabaseVersionDescription)');
+        ($(IdentityDatabaseVersionMajor), $(IdentityDatabaseVersionMinor), $(IdentityDatabaseVersionPatch), N'$(IdentityDatabaseVersionBuild)', N'$(IdentityDatabaseVersionDescription)');
 END
 GO
 

@@ -6,9 +6,9 @@
 --
 -- Created: Éamonn A. Duffy, 2-May-2021.
 --
--- Updated: Éamonn A. Duffy, 1-April-2022.
+-- Updated: Éamonn A. Duffy, 5-May-2022.
 --
--- Purpose: Roll Back Script for the Main Sql File for the Eadent Identity Sql Server Database.
+-- Purpose: Roll Back Script for the Main Sql for the Eadent Identity Sql Server Database.
 --
 -- Assumptions:
 --
@@ -24,12 +24,13 @@
 -- Some Variables.
 --------------------------------------------------------------------------------
 
-:SETVAR DatabaseVersionMajor             1
-:SETVAR DatabaseVersionMinor             0
-:SETVAR DatabaseVersionPatch             0
-:SETVAR DatabaseVersionBuild            "0"
+:SETVAR IdentityDatabaseVersionMajor             1
+:SETVAR IdentityDatabaseVersionMinor             0
+:SETVAR IdentityDatabaseVersionPatch             0
+:SETVAR IdentityDatabaseVersionBuild            "0"
+:SETVAR IdentityDatabaseVersionDescription      "Beta Build."
 
-:SETVAR IdentitySchema                  "Dad"
+:SETVAR IdentitySchema                          "Dad_Identity"
 
 --------------------------------------------------------------------------------
 -- Drop Tables.
@@ -66,7 +67,7 @@ DROP TABLE IF EXISTS $(IdentitySchema).ConfirmationStatuses;
 IF OBJECT_ID(N'$(IdentitySchema).DatabaseVersions', N'U') IS NOT NULL
 BEGIN
     DELETE FROM $(IdentitySchema).DatabaseVersions
-    WHERE Major = $(DatabaseVersionMajor) AND Minor = $(DatabaseVersionMinor) AND Patch = $(DatabaseVersionPatch) AND Build = N'$(DatabaseVersionBuild)';
+    WHERE Major = $(IdentityDatabaseVersionMajor) AND Minor = $(IdentityDatabaseVersionMinor) AND Patch = $(IdentityDatabaseVersionPatch) AND Build = N'$(IdentityDatabaseVersionBuild)';
 END
 GO
 
