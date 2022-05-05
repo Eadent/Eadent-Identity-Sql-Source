@@ -651,6 +651,7 @@ BEGIN
         ResetToken                              NVarChar(256) NOT NULL,
         ResetTokenRequestedDateTimeUtc          DateTime2(7) NOT NULL,
         ResetTokenExpirationDurationSeconds     Int NOT NULL,
+        EMailAddress                            NVarChar(256) NOT NULL,
         UserIpAddress                           NVarChar(128) NOT NULL,
         UserId                                  BigInt NULL CONSTRAINT FK_$(IdentitySchema)_UserPasswordResets_Users FOREIGN KEY (UserId) REFERENCES $(IdentitySchema).Users(UserId),
         CreatedDateTimeUtc                      DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_UserPasswordResets_CreatedDateTimeUtc DEFAULT GetUtcDate(),
