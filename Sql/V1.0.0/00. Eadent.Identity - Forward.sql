@@ -572,13 +572,13 @@ BEGIN
     (
         RoleId                      SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_Roles PRIMARY KEY,
         RoleLevel                   SmallInt NOT NULL,
-        Role                        NVarChar(128) NOT NULL,
+        RoleName                    NVarChar(128) NOT NULL,
         CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_Roles_CreatedDateTimeUtc DEFAULT GetUtcDate(),
         LastUpdatedDateTimeUtc      DateTime2(7) NULL
     );
 
     INSERT INTO $(IdentitySchema).Roles
-        (RoleId, RoleLevel, Role)
+        (RoleId, RoleLevel, RoleName)
     VALUES
         ( 100,  1000, N'Global Administrator'),
         (1000, 30000, N'User');
