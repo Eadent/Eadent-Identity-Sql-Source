@@ -312,7 +312,7 @@ BEGIN
         EMailAddress                                NVarChar(256) NOT NULL CONSTRAINT UQ_$(IdentitySchema)_Users_EMailAddress UNIQUE,
         EMailAddressConfirmationStatusId            SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_ConfirmationStatuses_EMailAddress FOREIGN KEY (EMailAddressConfirmationStatusId) REFERENCES $(IdentitySchema).ConfirmationStatuses(ConfirmationStatusId),
         EMailAddressConfirmationCode                NVarChar(128) NULL,
-        MobilePhoneNumber                           NVarChar(32) NULL CONSTRAINT UQ_$(IdentitySchema)_Users_MobilePhoneNumber UNIQUE,
+        MobilePhoneNumber                           NVarChar(32) NULL,
         MobilePhoneNumberConfirmationStatusId       SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_ConfirmationStatuses_MobilePhoneNumber FOREIGN KEY (MobilePhoneNumberConfirmationStatusId) REFERENCES $(IdentitySchema).ConfirmationStatuses(ConfirmationStatusId),
         MobilePhoneNumberConfirmationCode           NVarChar(128) NULL,
         PasswordVersionId                           SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_Users_PasswordVersions FOREIGN KEY (PasswordVersionId) REFERENCES $(IdentitySchema).PasswordVersions(PasswordVersionId),
