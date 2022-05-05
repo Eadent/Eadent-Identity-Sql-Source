@@ -408,13 +408,12 @@ BEGIN
         (SignInStatusId, Status)
     VALUES
         (  0, N'Error'),
-        (  1, N'Awaiting Confirmation'),
-        (  2, N'Success'),
-        (  3, N'Success - Must Change Password'),
-        (  4, N'User Disabled'),
-        (  5, N'User Locked Out'),
-        (  6, N'Invalid E-Mail Address'),
-        (  7, N'Invalid Password'),
+        (  1, N'Success'),
+        (  2, N'Success - Must Change Password'),
+        (  3, N'User Disabled'),
+        (  4, N'User Locked Out'),
+        (  5, N'Invalid E-Mail Address'),
+        (  6, N'Invalid Password'),
         (100, N'User Soft Deleted');
 END
 GO
