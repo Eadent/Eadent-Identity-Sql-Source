@@ -6,7 +6,7 @@
 --
 -- Created: Éamonn A. Duffy, 2-May-2021.
 --
--- Updated: Éamonn A. Duffy, 5-May-2022.
+-- Updated: Éamonn A. Duffy, 7-May-2022.
 --
 -- Purpose: Roll Back Script for the Main Sql for the Eadent Identity Sql Server Database.
 --
@@ -66,8 +66,11 @@ DROP TABLE IF EXISTS $(IdentitySchema).ConfirmationStatuses;
 
 IF OBJECT_ID(N'$(IdentitySchema).EadentIdentityDatabaseVersions', N'U') IS NOT NULL
 BEGIN
-    DELETE FROM $(IdentitySchema).EadentIdentityDatabaseVersions
-    WHERE Major = $(IdentityDatabaseVersionMajor) AND Minor = $(IdentityDatabaseVersionMinor) AND Patch = $(IdentityDatabaseVersionPatch) AND Build = N'$(IdentityDatabaseVersionBuild)';
+	IF EXISTS (SELECT 1 FROM $(IdentitySchema).EadentIdentityDatabaseVersions WHERE Major = $(IdentityDatabaseVersionMajor) AND Minor = $(IdentityDatabaseVersionMinor) AND Patch = $(IdentityDatabaseVersionPatch) AND Build = N'$(IdentityDatabaseVersionBuild)')
+	BEGIN
+		DELETE FROM $(IdentitySchema).EadentIdentityDatabaseVersions
+		WHERE Major = $(IdentityDatabaseVersionMajor) AND Minor = $(IdentityDatabaseVersionMinor) AND Patch = $(IdentityDatabaseVersionPatch) AND Build = N'$(IdentityDatabaseVersionBuild)';
+	END
 END
 GO
 
