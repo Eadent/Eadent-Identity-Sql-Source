@@ -6,7 +6,7 @@
 --
 -- Created: Éamonn A. Duffy, 2-May-2021.
 --
--- Updated: Éamonn A. Duffy, 5-May-2022.
+-- Updated: Éamonn A. Duffy, 22-May-2022.
 --
 -- Purpose: Forward Script for the Main Sql for the Eadent Identity Sql Server Database.
 --
@@ -326,7 +326,7 @@ BEGIN
         SignInErrorLimit                            Int NOT NULL,
         SignInLockOutDurationSeconds                Int NOT NULL,
         SignInLockOutDateTimeUtc                    DateTime2(7) NULL,
-        CreatedDateTimeUtc                          DateTime2(7) NOT NULL,
+        CreatedDateTimeUtc                          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_Users_CreatedDateTimeUtc DEFAULT GetUtcDate(),
         LastUpdatedDateTimeUtc                      DateTime2(7) NULL
     );
 END
@@ -483,8 +483,8 @@ BEGIN
         UserIpAddress                           NVarChar(128) NOT NULL,
         SignInStatusId                          SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_UserSessions_SignInStatuses FOREIGN KEY (SignInStatusId) REFERENCES $(IdentitySchema).SignInStatuses(SignInStatusId),
         UserId                                  BigInt NULL CONSTRAINT FK_$(IdentitySchema)_UserSessions_Users FOREIGN KEY (UserId) REFERENCES $(IdentitySchema).Users(UserId),
-        CreatedDateTimeUtc                      DateTime2(7) NOT NULL,
-        LastUpdatedDateTimeUtc                  DateTime2(7) NOT NULL
+        CreatedDateTimeUtc                      DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_UserSessions_CreatedDateTimeUtc DEFAULT GetUtcDate(),
+        LastUpdatedDateTimeUtc                  DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_UserSessions_LastUpdatedDateTimeUtc DEFAULT GetUtcDate()
     );
 END
 GO
@@ -530,7 +530,7 @@ BEGIN
         NewValue                    NVarChar(256) NULL,
         UserIpAddress               NVarChar(128) NOT NULL,
         GoogleReCaptchaScore        Decimal(5, 2) NULL,
-        CreatedDateTimeUtc          DateTime2(7) NOT NULL,
+        CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_UserAudits_CreatedDateTimeUtc DEFAULT GetUtcDate(),
         LastUpdatedDateTimeUtc      DateTime2(7) NULL
     );
 END
