@@ -1,12 +1,12 @@
 --------------------------------------------------------------------------------
--- Copyright © 2021+ Éamonn Anthony Duffy. All Rights Reserved.
+-- Copyright Â© 2021+ Eamonn Anthony Duffy. All Rights Reserved.
 --------------------------------------------------------------------------------
 --
 -- Version: V1.0.0.
 --
--- Created: Éamonn A. Duffy, 2-May-2021.
+-- Created: Eamonn A. Duffy, 2-May-2021.
 --
--- Updated: Éamonn A. Duffy, 7-May-2022.
+-- Updated: Eamonn A. Duffy, 6-July-2025.
 --
 -- Purpose: Roll Back Script for the Main Sql for the Eadent Identity Sql Server Database.
 --
@@ -58,6 +58,7 @@ DROP TABLE IF EXISTS $(IdentitySchema).SignInTypes;
 
 DROP TABLE IF EXISTS $(IdentitySchema).SignInMultiFactorAuthenticationTypes;
 
+-- TODO: Remove the following line eventually.
 DROP TABLE IF EXISTS $(IdentitySchema).PasswordResetStatuses;
 
 DROP TABLE IF EXISTS $(IdentitySchema).PasswordVersions;
@@ -66,11 +67,11 @@ DROP TABLE IF EXISTS $(IdentitySchema).ConfirmationStatuses;
 
 IF OBJECT_ID(N'$(IdentitySchema).EadentIdentityDatabaseVersions', N'U') IS NOT NULL
 BEGIN
-	IF EXISTS (SELECT 1 FROM $(IdentitySchema).EadentIdentityDatabaseVersions WHERE Major = $(IdentityDatabaseVersionMajor) AND Minor = $(IdentityDatabaseVersionMinor) AND Patch = $(IdentityDatabaseVersionPatch) AND Build = N'$(IdentityDatabaseVersionBuild)')
-	BEGIN
-		DELETE FROM $(IdentitySchema).EadentIdentityDatabaseVersions
-		WHERE Major = $(IdentityDatabaseVersionMajor) AND Minor = $(IdentityDatabaseVersionMinor) AND Patch = $(IdentityDatabaseVersionPatch) AND Build = N'$(IdentityDatabaseVersionBuild)';
-	END
+    IF EXISTS (SELECT 1 FROM $(IdentitySchema).EadentIdentityDatabaseVersions WHERE Major = $(IdentityDatabaseVersionMajor) AND Minor = $(IdentityDatabaseVersionMinor) AND Patch = $(IdentityDatabaseVersionPatch) AND Build = N'$(IdentityDatabaseVersionBuild)')
+    BEGIN
+        DELETE FROM $(IdentitySchema).EadentIdentityDatabaseVersions
+        WHERE Major = $(IdentityDatabaseVersionMajor) AND Minor = $(IdentityDatabaseVersionMinor) AND Patch = $(IdentityDatabaseVersionPatch) AND Build = N'$(IdentityDatabaseVersionBuild)';
+    END
 END
 GO
 

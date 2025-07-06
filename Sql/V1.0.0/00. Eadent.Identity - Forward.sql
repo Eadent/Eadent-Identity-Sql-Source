@@ -1,12 +1,12 @@
 --------------------------------------------------------------------------------
--- Copyright © 2021+ Éamonn Anthony Duffy. All Rights Reserved.
+-- Copyright Â© 2021+ Eamonn Anthony Duffy. All Rights Reserved.
 --------------------------------------------------------------------------------
 --
 -- Version: V1.0.0.
 --
--- Created: Éamonn A. Duffy, 2-May-2021.
+-- Created: Eamonn A. Duffy, 2-May-2021.
 --
--- Updated: Éamonn A. Duffy, 22-May-2022.
+-- Updated: Eamonn A. Duffy, 6-July-2025.
 --
 -- Purpose: Forward Script for the Main Sql for the Eadent Identity Sql Server Database.
 --
@@ -166,40 +166,6 @@ GO
 
 --------------------------------------------------------------------------------
 
-IF OBJECT_ID(N'$(IdentitySchema).PasswordResetStatuses', N'U') IS NULL
-BEGIN
-    PRINT N'Creating the PasswordResetStatuses Table.';
-
-    CREATE TABLE $(IdentitySchema).PasswordResetStatuses
-    (
-        PasswordResetStatusId       SmallInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_PasswordResetStatuses PRIMARY KEY,
-        Status                      NVarChar(128) NOT NULL,
-        CreatedDateTimeUtc          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_PasswordResetStatuses_CreatedDateTimeUtc DEFAULT GetUtcDate(),
-        LastUpdatedDateTimeUtc      DateTime2(7) NULL
-    );
-
-    INSERT INTO $(IdentitySchema).PasswordResetStatuses
-        (PasswordResetStatusId, Status)
-    VALUES
-        (  0, N'Closed'),
-        (  1, N'Open'),
-        (  2, N'Aborted'),
-        (  3, N'TimedOutExpired');
-END
-GO
-
-DECLARE @Error AS Int = @@ERROR;
-IF (@Error != 0)
-BEGIN
-    IF @@TRANCOUNT > 0
-        ROLLBACK TRANSACTION;
-    BEGIN TRANSACTION;
-    SET CONTEXT_INFO 0x01;
-END
-GO
-
---------------------------------------------------------------------------------
-
 IF OBJECT_ID(N'$(IdentitySchema).SignInMultiFactorAuthenticationTypes', N'U') IS NULL
 BEGIN
     PRINT N'Creating the SignInMultiFactorAuthenticationTypes Table.';
@@ -324,7 +290,7 @@ BEGIN
         ChangePasswordNextSignIn                    Bit NOT NULL,
         SignInErrorCount                            Int NOT NULL,
         SignInErrorLimit                            Int NOT NULL,
-        SignInLockOutDurationSeconds                Int NOT NULL,
+        SignInLockOutDurationInSeconds              Int NOT NULL,
         SignInLockOutDateTimeUtc                    DateTime2(7) NULL,
         CreatedDateTimeUtc                          DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_Users_CreatedDateTimeUtc DEFAULT GetUtcDate(),
         LastUpdatedDateTimeUtc                      DateTime2(7) NULL
@@ -477,7 +443,7 @@ BEGIN
         UserSessionToken                        NVarChar(256) NOT NULL,
         UserSessionGuid                         UniqueIdentifier NOT NULL,
         UserSessionStatusId                     SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_UserSessions_UserSessionStatuses FOREIGN KEY (UserSessionStatusId) REFERENCES $(IdentitySchema).UserSessionStatuses(UserSessionStatusId),
-        UserSessionExpirationDurationSeconds    Int NOT NULL,
+        UserSessionExpirationDurationInSeconds  Int NOT NULL,
         EMailAddress                            NVarChar(256) NOT NULL,
         MobilePhoneNumber                       NVarChar(32) NULL,
         UserIpAddress                           NVarChar(128) NOT NULL,
@@ -647,13 +613,16 @@ BEGIN
     CREATE TABLE $(IdentitySchema).UserPasswordResets
     (
         UserPasswordResetId                     BigInt NOT NULL CONSTRAINT PK_$(IdentitySchema)_UserPasswordResets PRIMARY KEY IDENTITY(0, 1),
-        PasswordResetStatusId                   SmallInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_UserPasswordResets_PasswordResetStatuses FOREIGN KEY (PasswordResetStatusId) REFERENCES $(IdentitySchema).PasswordResetStatuses(PasswordResetStatusId),
-        ResetToken                              NVarChar(256) NOT NULL,
-        ResetTokenRequestedDateTimeUtc          DateTime2(7) NOT NULL,
-        ResetTokenExpirationDurationSeconds     Int NOT NULL,
+        UserId                                  BigInt NOT NULL CONSTRAINT FK_$(IdentitySchema)_UserPasswordResets_Users FOREIGN KEY (UserId) REFERENCES $(IdentitySchema).Users(UserId),
         EMailAddress                            NVarChar(256) NOT NULL,
+        PasswordResetCode                       NVarChar(256) NOT NULL,
+        ResetFirstRequestedDateTimeUtc          DateTime2(7) NOT NULL,
+        ResetWindowDurationInSeconds            Int NOT NULL,
+        RequestCodeCount                        TinyInt NOT NULL,
+        RequestCodeLimit                        TinyInt NOT NULL,
+        TryCodeCount                            TinyInt NOT NULL,
+        TryCodeLimit                            TinyInt NOT NULL,
         UserIpAddress                           NVarChar(128) NOT NULL,
-        UserId                                  BigInt NULL CONSTRAINT FK_$(IdentitySchema)_UserPasswordResets_Users FOREIGN KEY (UserId) REFERENCES $(IdentitySchema).Users(UserId),
         CreatedDateTimeUtc                      DateTime2(7) NOT NULL CONSTRAINT DF_$(IdentitySchema)_UserPasswordResets_CreatedDateTimeUtc DEFAULT GetUtcDate(),
         LastUpdatedDateTimeUtc                  DateTime2(7) NULL
     );
@@ -670,9 +639,9 @@ BEGIN
 END
 GO
 
-IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserPasswordResets'), 'IX_$(IdentitySchema)_UserPasswordResets_ResetToken', 'IndexId') IS NULL
+IF INDEXPROPERTY(OBJECT_ID(N'$(IdentitySchema).UserPasswordResets'), 'IX_$(IdentitySchema)_UserPasswordResets_EMailAddress', 'IndexId') IS NULL
 BEGIN
-    CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_UserPasswordResets_ResetToken ON $(IdentitySchema).UserPasswordResets(ResetToken) INCLUDE (UserPasswordResetId, ResetTokenExpirationDurationSeconds);
+    CREATE NONCLUSTERED INDEX IX_$(IdentitySchema)_UserPasswordResets_EMailAddress ON $(IdentitySchema).UserPasswordResets(EMailAddress) INCLUDE (UserPasswordResetId, UserId, PasswordResetCode);
 END
 GO
 
